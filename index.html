@@ -758,11 +758,8 @@ background-repeat: no-repeat;
 															<th></th>
 														</tr>
 													</thead>
-													<tbody>${rows || '
-														<tr>
-															<td colspan="5" class="py-4 text-center text-[var(--text-secondary)]">No students.</td>
-														</tr>'}
-													</tbody>
+													<tbody>${rows || '<tr><td colspan="5" class="py-4 text-center text-[var(--text-secondary)]">No students.</td></tr>'}</tbody>
+
 												</table>
 											</div>
 											<div class="card p-4">
