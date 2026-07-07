@@ -692,9 +692,8 @@ background-repeat: no-repeat;
 										<h2 class="text-2xl font-bold flex items-center gap-2">
 											<i data-lucide="school" class="w-6 h-6"></i> Classes
 										</h2>
-										<div class="grid gap-3">${list || '
-											<p class="text-[var(--text-secondary)]">No classes yet.</p>'}
-										</div>
+<div class="grid gap-3">${list || '<p class="text-[var(--text-secondary)]">No classes yet.</p>'}</div>
+
 										<div class="card p-4">
 											<h3 class="font-semibold mb-2">Add Class</h3>
 											<form onsubmit="addClass(event)" class="flex gap-2">
