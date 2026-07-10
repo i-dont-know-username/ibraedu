@@ -216,6 +216,7 @@
 
 <body class="min-h-screen flex flex-col">
 
+    <!-- Custom Modal -->
     <div id="customModal" class="modal-overlay hidden">
         <div class="modal-content animate-fade-in">
             <p id="modalMessage" class="text-sm mb-4"></p>
@@ -226,6 +227,7 @@
         </div>
     </div>
 
+    <!-- Login Screen -->
     <div id="loginScreen" class="flex items-center justify-center min-h-screen p-4">
         <div class="card w-full max-w-md p-6 space-y-6 animate-fade-in">
             <div class="text-center">
@@ -252,6 +254,7 @@
         </div>
     </div>
 
+    <!-- Main App Screen -->
     <div id="appScreen" class="hidden flex min-h-screen">
         <div id="sidebarOverlay" class="overlay" onclick="closeSidebar()"></div>
 
@@ -320,6 +323,7 @@
         </div>
     </div>
 
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         (function() {
@@ -328,12 +332,10 @@
                 'background:#171717;color:#a3a3a3;padding:4px 8px;border-radius:0 4px 4px 0;');
         })();
 
-        // ---------- SUPABASE CONFIG ----------
         const SUPABASE_URL = 'https://wsxuzxianjqdaaetaphi.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndzeHV6eGlhbmpxZGFhZXRhcGhpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM0Mzg0MjYsImV4cCI6MjA5OTAxNDQyNn0.YNWg9o94WvOJcN3WZ03VQGg3fN3wPaljllSSV6Ej-E4';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // ---------- DATA STORE (NO defaults) ----------
         const STORAGE_KEY = 'IbraEdu Database';
         let currentUser = null;
         let dataStore = {
@@ -344,9 +346,9 @@
             weeklyPlans: [],
             disciplineRecords: []
         };
+        let previousData = null;
 
-        let previousData = null; // for change detection
-
+        // ---------- Modal / Alert / Confirm ----------
         function showModal(message, isConfirm = false) {
             return new Promise((resolve) => {
                 const modal = document.getElementById('customModal');
@@ -368,12 +370,12 @@
         window.alert = (msg) => showModal(msg, false);
         window.confirm = (msg) => showModal(msg, true);
 
-        // ---------- Lucide icons ----------
+        // ---------- Lucide Icons ----------
         function initLucide() {
             lucide.createIcons();
         }
 
-        // ---------- DATA PERSISTENCE ----------
+        // ---------- Supabase Data Handling ----------
         async function fetchDataFromSupabase() {
             try {
                 const { data, error } = await supabaseClient
@@ -381,7 +383,6 @@
                     .select("lms_json")
                     .limit(1)
                     .maybeSingle();
-
                 if (error) throw error;
                 return data ? data.lms_json : null;
             } catch (err) {
@@ -392,9 +393,7 @@
 
         async function saveLocal() {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(dataStore));
-
             try {
-                // Keep a single row in Supabase
                 const { data: existing } = await supabaseClient
                     .from('ibraedu_data')
                     .select('lms_json');
@@ -429,45 +428,43 @@
                 } catch (e) {
                     console.warn('Corrupted localStorage data');
                 }
+            } else {
+                console.log('ℹ No localStorage data yet');
             }
         }
 
-        // Poll Supabase every 5 seconds and update local store
+        // Polling every 5 seconds (after login)
         async function pollSupabase() {
             const newData = await fetchDataFromSupabase();
             if (newData) {
                 if (!previousData) previousData = JSON.parse(JSON.stringify(dataStore));
-
                 dataStore.users = newData.users || [];
                 dataStore.classes = newData.classes || [];
                 dataStore.homeworks = newData.homeworks || [];
                 dataStore.dailyWorks = newData.dailyWorks || [];
                 dataStore.weeklyPlans = newData.weeklyPlans || [];
                 dataStore.disciplineRecords = newData.disciplineRecords || [];
-
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(dataStore));
-
                 checkAndNotify(newData);
                 previousData = newData;
             }
         }
 
+        function startPolling() {
+            pollSupabase();
+            setInterval(pollSupabase, 5000);
+        }
+
+        // ---------- Notifications ----------
         function checkAndNotify(newData) {
             if (!previousData) return;
             if (Notification.permission !== 'granted') return;
-
             const prev = previousData;
-            const newHomeworks = newData.homeworks?.length > prev.homeworks?.length;
-            const newDaily = newData.dailyWorks?.length > prev.dailyWorks?.length;
-            const newPlans = newData.weeklyPlans?.length > prev.weeklyPlans?.length;
-            const newDisc = newData.disciplineRecords?.length > prev.disciplineRecords?.length;
-
             let message = '';
-            if (newHomeworks) message += 'New homework, ';
-            if (newDaily) message += 'New daily work, ';
-            if (newPlans) message += 'New weekly plan, ';
-            if (newDisc) message += 'New discipline record, ';
-
+            if (newData.homeworks?.length > prev.homeworks?.length) message += 'New homework, ';
+            if (newData.dailyWorks?.length > prev.dailyWorks?.length) message += 'New daily work, ';
+            if (newData.weeklyPlans?.length > prev.weeklyPlans?.length) message += 'New weekly plan, ';
+            if (newData.disciplineRecords?.length > prev.disciplineRecords?.length) message += 'New discipline record, ';
             if (message) {
                 message = message.slice(0, -2);
                 new Notification('IbraEdu Update', {
@@ -480,21 +477,27 @@
         function requestNotificationPermission() {
             if (!('Notification' in window)) return;
             if (Notification.permission === 'default') {
-                Notification.requestPermission().then(perm => {
-                    console.log('Notification permission:', perm);
-                });
+                Notification.requestPermission().then(perm => console.log('Notification permission:', perm));
             }
         }
 
-        function startPolling() {
-            pollSupabase(); // immediate
-            setInterval(pollSupabase, 5000);
-        }
-
-        // ---------- INITIAL LOAD (load Supabase data before login) ----------
+        // ---------- Initial Data Load (with default row creation) ----------
         async function initialDataLoad() {
-            loadLocal(); // cached first
-            const supabaseData = await fetchDataFromSupabase();
+            loadLocal();
+            console.log('Attempting to fetch data from Supabase...');
+            let supabaseData = await fetchDataFromSupabase();
+            if (!supabaseData) {
+                console.log('No data found in Supabase, inserting default row to trigger table default...');
+                const { error: insertError } = await supabaseClient
+                    .from('ibraedu_data')
+                    .insert({}); // empty object triggers column default
+                if (insertError) {
+                    console.error('Failed to create default row:', insertError);
+                } else {
+                    console.log('Default row created, fetching again...');
+                    supabaseData = await fetchDataFromSupabase();
+                }
+            }
             if (supabaseData) {
                 dataStore.users = supabaseData.users || [];
                 dataStore.classes = supabaseData.classes || [];
@@ -503,10 +506,13 @@
                 dataStore.weeklyPlans = supabaseData.weeklyPlans || [];
                 dataStore.disciplineRecords = supabaseData.disciplineRecords || [];
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(dataStore));
+                console.log('✔ Data loaded from Supabase, users:', dataStore.users.length);
+            } else {
+                console.warn('Could not load data from Supabase, using local cache only.');
             }
         }
 
-        // ---------- LOGIN ----------
+        // ---------- Login ----------
         document.getElementById('loginButton').addEventListener('click', attemptLogin);
         ['loginId', 'loginPassword'].forEach(id => {
             document.getElementById(id).addEventListener('keypress', (e) => {
@@ -545,7 +551,7 @@
             console.log(`%c✔ Logged in as ${user.name}`, 'color: #4ade80;');
         }
 
-        // ---------- DASHBOARD SETUP ----------
+        // ---------- Dashboard Init ----------
         function initDashboard() {
             document.getElementById('userName').textContent = currentUser.name;
             document.getElementById('userInitial').textContent = currentUser.name.charAt(0).toUpperCase();
@@ -565,44 +571,26 @@
             });
             if (!localStorage.getItem('theme')) localStorage.setItem('theme', 'dark');
             applyTheme(localStorage.getItem('theme'));
-            const initDiv = document.getElementById('userInitial');
-            initDiv.style.width = '2rem';
-            initDiv.style.height = '2rem';
+            document.getElementById('userInitial').style.width = '2rem';
+            document.getElementById('userInitial').style.height = '2rem';
         }
 
-        // ---------- NAVIGATION HANDLER ----------
+        // ---------- Navigation ----------
         function navigateTo(page) {
             document.querySelectorAll('#sidebarNav a').forEach(a => a.classList.remove('active'));
             const activeLink = document.querySelector(`#sidebarNav a[data-page="${page}"]`);
             if (activeLink) activeLink.classList.add('active');
             const main = document.getElementById('mainContent');
             switch (page) {
-                case 'homework':
-                    main.innerHTML = renderHomework();
-                    break;
-                case 'daily-work':
-                    main.innerHTML = renderDailyWork();
-                    break;
-                case 'weekly-plan':
-                    main.innerHTML = renderWeeklyPlan();
-                    break;
-                case 'discipline':
-                    main.innerHTML = renderDiscipline();
-                    break;
-                case 'manage-classes':
-                    main.innerHTML = renderManageClasses();
-                    break;
-                case 'manage-students':
-                    main.innerHTML = renderManageStudents();
-                    break;
-                case 'manage-content':
-                    main.innerHTML = renderManageContent();
-                    break;
-                case 'change-password':
-                    main.innerHTML = renderChangePassword();
-                    break;
-                default:
-                    main.innerHTML = renderHomework();
+                case 'homework': main.innerHTML = renderHomework(); break;
+                case 'daily-work': main.innerHTML = renderDailyWork(); break;
+                case 'weekly-plan': main.innerHTML = renderWeeklyPlan(); break;
+                case 'discipline': main.innerHTML = renderDiscipline(); break;
+                case 'manage-classes': main.innerHTML = renderManageClasses(); break;
+                case 'manage-students': main.innerHTML = renderManageStudents(); break;
+                case 'manage-content': main.innerHTML = renderManageContent(); break;
+                case 'change-password': main.innerHTML = renderChangePassword(); break;
+                default: main.innerHTML = renderHomework();
             }
             initLucide();
         }
@@ -611,20 +599,21 @@
             return currentUser?.class || '';
         }
 
+        // ---------- Render Functions ----------
         function renderHomework() {
             const classFilter = currentUser.role === 'teacher' ? 'all' : getStudentClass();
             const items = dataStore.homeworks.filter(hw => classFilter === 'all' || hw.class === classFilter);
             const html = items.length ? items.map((hw, i) => `
-        <div class="card p-4 flex justify-between items-start">
-          <div>
-            <h3 class="font-semibold">${hw.title}</h3>
-            <p class="text-sm text-[var(--text-secondary)]">${hw.description}</p>
-            <span class="text-xs text-[var(--text-secondary)]">Due: ${hw.dueDate || '-'}</span>
-            ${currentUser.role === 'teacher' ? `<span class="text-xs border border-[var(--border)] px-2 py-1 rounded ml-2">${hw.class}</span>` : ''}
-          </div>
-          ${currentUser.role === 'teacher' ? `<button onclick="deleteHomework(${i})" class="text-red-400 hover:text-red-300"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : ''}
-        </div>
-      `).join('') : '<p class="text-[var(--text-secondary)]">No homework.</p>';
+            <div class="card p-4 flex justify-between items-start">
+              <div>
+                <h3 class="font-semibold">${hw.title}</h3>
+                <p class="text-sm text-[var(--text-secondary)]">${hw.description}</p>
+                <span class="text-xs text-[var(--text-secondary)]">Due: ${hw.dueDate || '-'}</span>
+                ${currentUser.role === 'teacher' ? `<span class="text-xs border border-[var(--border)] px-2 py-1 rounded ml-2">${hw.class}</span>` : ''}
+              </div>
+              ${currentUser.role === 'teacher' ? `<button onclick="deleteHomework(${i})" class="text-red-400 hover:text-red-300"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : ''}
+            </div>
+          `).join('') : '<p class="text-[var(--text-secondary)]">No homework.</p>';
             return `<div class="space-y-6 animate-fade-in"><h2 class="text-2xl font-bold flex items-center gap-2"><i data-lucide="book-open" class="w-6 h-6"></i> Homework</h2><div class="grid gap-4">${html}</div></div>`;
         }
 
@@ -632,16 +621,16 @@
             const classFilter = currentUser.role === 'teacher' ? 'all' : getStudentClass();
             const items = dataStore.dailyWorks.filter(dw => classFilter === 'all' || dw.class === classFilter);
             const html = items.length ? items.map((dw, i) => `
-        <div class="card p-4 flex justify-between">
-          <div>
-            <h3 class="font-semibold">${dw.title}</h3>
-            <p class="text-sm text-[var(--text-secondary)]">${dw.description}</p>
-            <span class="text-xs text-[var(--text-secondary)]">${dw.date || '-'}</span>
-            ${currentUser.role === 'teacher' ? `<span class="text-xs border border-[var(--border)] px-2 py-1 rounded ml-2">${dw.class}</span>` : ''}
-          </div>
-          ${currentUser.role === 'teacher' ? `<button onclick="deleteDailyWork(${i})" class="text-red-400 hover:text-red-300"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : ''}
-        </div>
-      `).join('') : '<p class="text-[var(--text-secondary)]">No daily work.</p>';
+            <div class="card p-4 flex justify-between">
+              <div>
+                <h3 class="font-semibold">${dw.title}</h3>
+                <p class="text-sm text-[var(--text-secondary)]">${dw.description}</p>
+                <span class="text-xs text-[var(--text-secondary)]">${dw.date || '-'}</span>
+                ${currentUser.role === 'teacher' ? `<span class="text-xs border border-[var(--border)] px-2 py-1 rounded ml-2">${dw.class}</span>` : ''}
+              </div>
+              ${currentUser.role === 'teacher' ? `<button onclick="deleteDailyWork(${i})" class="text-red-400 hover:text-red-300"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : ''}
+            </div>
+          `).join('') : '<p class="text-[var(--text-secondary)]">No daily work.</p>';
             return `<div class="space-y-6 animate-fade-in"><h2 class="text-2xl font-bold flex items-center gap-2"><i data-lucide="calendar" class="w-6 h-6"></i> Daily Work</h2><div class="grid gap-4">${html}</div></div>`;
         }
 
@@ -649,15 +638,15 @@
             const classFilter = currentUser.role === 'teacher' ? 'all' : getStudentClass();
             const items = dataStore.weeklyPlans.filter(wp => classFilter === 'all' || wp.class === classFilter);
             const html = items.length ? items.map((wp, i) => `
-        <div class="card p-4 flex justify-between">
-          <div>
-            <h3 class="font-semibold">${wp.week}</h3>
-            <p class="text-sm text-[var(--text-secondary)]">${wp.plan}</p>
-            ${currentUser.role === 'teacher' ? `<span class="text-xs border border-[var(--border)] px-2 py-1 rounded">${wp.class}</span>` : ''}
-          </div>
-          ${currentUser.role === 'teacher' ? `<button onclick="deleteWeeklyPlan(${i})" class="text-red-400 hover:text-red-300"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : ''}
-        </div>
-      `).join('') : '<p class="text-[var(--text-secondary)]">No weekly plan.</p>';
+            <div class="card p-4 flex justify-between">
+              <div>
+                <h3 class="font-semibold">${wp.week}</h3>
+                <p class="text-sm text-[var(--text-secondary)]">${wp.plan}</p>
+                ${currentUser.role === 'teacher' ? `<span class="text-xs border border-[var(--border)] px-2 py-1 rounded">${wp.class}</span>` : ''}
+              </div>
+              ${currentUser.role === 'teacher' ? `<button onclick="deleteWeeklyPlan(${i})" class="text-red-400 hover:text-red-300"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : ''}
+            </div>
+          `).join('') : '<p class="text-[var(--text-secondary)]">No weekly plan.</p>';
             return `<div class="space-y-6 animate-fade-in"><h2 class="text-2xl font-bold flex items-center gap-2"><i data-lucide="clipboard-list" class="w-6 h-6"></i> Weekly Plan</h2><div class="grid gap-4">${html}</div></div>`;
         }
 
@@ -672,20 +661,21 @@
                 const student = dataStore.users.find(u => u.id === r.studentId);
                 const studentName = student ? student.name : r.studentId;
                 return `
-          <div class="card p-4 flex justify-between">
-            <div>
-              <p class="font-medium">${r.note}</p>
-              <div class="text-xs text-[var(--text-secondary)] mt-1">
-                ${r.date} ${currentUser.role === 'teacher' ? `· Student: ${studentName}` : ''}
-              </div>
-            </div>
-            ${currentUser.role === 'teacher' ? `<button onclick="deleteDiscipline(${i})" class="text-red-400 hover:text-red-300"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : ''}
-          </div>
-        `;
+                <div class="card p-4 flex justify-between">
+                  <div>
+                    <p class="font-medium">${r.note}</p>
+                    <div class="text-xs text-[var(--text-secondary)] mt-1">
+                      ${r.date} ${currentUser.role === 'teacher' ? `· Student: ${studentName}` : ''}
+                    </div>
+                  </div>
+                  ${currentUser.role === 'teacher' ? `<button onclick="deleteDiscipline(${i})" class="text-red-400 hover:text-red-300"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : ''}
+                </div>
+              `;
             }).join('') : '<p class="text-[var(--text-secondary)]">No discipline records.</p>';
             return `<div class="space-y-6 animate-fade-in"><h2 class="text-2xl font-bold flex items-center gap-2"><i data-lucide="shield-alert" class="w-6 h-6"></i> Discipline</h2><div class="grid gap-4">${html}</div></div>`;
         }
 
+        // ---------- Delete Handlers ----------
         async function deleteHomework(index) {
             if (await confirm('Delete this homework?')) {
                 dataStore.homeworks.splice(index, 1);
@@ -715,27 +705,28 @@
             }
         }
 
+        // ---------- Manage Classes ----------
         function renderManageClasses() {
             const classes = dataStore.classes;
             const list = classes.map(c => `
-        <div class="flex justify-between items-center card p-3">
-          <span>${c}</span>
-          <button onclick="deleteClass('${c}')" class="text-red-400 hover:text-red-300"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-        </div>
-      `).join('');
+            <div class="flex justify-between items-center card p-3">
+              <span>${c}</span>
+              <button onclick="deleteClass('${c}')" class="text-red-400 hover:text-red-300"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+            </div>
+          `).join('');
             return `
-        <div class="space-y-6 animate-fade-in">
-          <h2 class="text-2xl font-bold flex items-center gap-2"><i data-lucide="school" class="w-6 h-6"></i> Classes</h2>
-          <div class="grid gap-3">${list || '<p class="text-[var(--text-secondary)]">No classes yet.</p>'}</div>
-          <div class="card p-4">
-            <h3 class="font-semibold mb-2">Add Class</h3>
-            <form onsubmit="addClass(event)" class="flex gap-2">
-              <input type="text" id="newClassName" placeholder="Class name" class="input-field" required>
-              <button type="submit" class="btn">Add</button>
-            </form>
-          </div>
-        </div>
-      `;
+            <div class="space-y-6 animate-fade-in">
+              <h2 class="text-2xl font-bold flex items-center gap-2"><i data-lucide="school" class="w-6 h-6"></i> Classes</h2>
+              <div class="grid gap-3">${list || '<p class="text-[var(--text-secondary)]">No classes yet.</p>'}</div>
+              <div class="card p-4">
+                <h3 class="font-semibold mb-2">Add Class</h3>
+                <form onsubmit="addClass(event)" class="flex gap-2">
+                  <input type="text" id="newClassName" placeholder="Class name" class="input-field" required>
+                  <button type="submit" class="btn">Add</button>
+                </form>
+              </div>
+            </div>
+          `;
         }
 
         async function addClass(e) {
@@ -760,42 +751,43 @@
             navigateTo('manage-classes');
         }
 
+        // ---------- Manage Students ----------
         function renderManageStudents() {
             const students = dataStore.users.filter(u => u.role === 'student');
             const rows = students.map(s => `
-        <tr class="border-b border-[var(--border)]">
-          <td class="py-2">${s.id}</td>
-          <td>${s.name}</td>
-          <td>${s.dob}</td>
-          <td>${s.class || '-'}</td>
-          <td><button onclick="removeStudent('${s.id}')" class="text-red-400 hover:text-red-300"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td>
-        </tr>
-      `).join('');
+            <tr class="border-b border-[var(--border)]">
+              <td class="py-2">${s.id}</td>
+              <td>${s.name}</td>
+              <td>${s.dob}</td>
+              <td>${s.class || '-'}</td>
+              <td><button onclick="removeStudent('${s.id}')" class="text-red-400 hover:text-red-300"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td>
+            </tr>
+          `).join('');
             return `
-        <div class="space-y-6 animate-fade-in">
-          <h2 class="text-2xl font-bold flex items-center gap-2"><i data-lucide="users" class="w-6 h-6"></i> Students</h2>
-          <div class="card p-4 overflow-x-auto">
-            <table class="w-full text-left">
-              <thead><tr class="border-b border-[var(--border)]"><th class="py-2">ID</th><th>Name</th><th>DOB</th><th>Class</th><th></th></tr></thead>
-              <tbody>${rows || '<tr><td colspan="5" class="py-4 text-center text-[var(--text-secondary)]">No students.</td></tr>'}</tbody>
-            </table>
-          </div>
-          <div class="card p-4">
-            <h3 class="font-semibold mb-2">Add Student</h3>
-            <form onsubmit="addStudent(event)" class="space-y-3">
-              <input type="text" id="newId" placeholder="ID" class="input-field" required>
-              <input type="text" id="newName" placeholder="Full Name" class="input-field" required>
-              <input type="text" id="newDob" placeholder="DOB (DD/MM/YYYY)" class="input-field" required>
-              <input type="password" id="newPassword" placeholder="Password (min 6 chars)" class="input-field" minlength="6" required>
-              <select id="newClass" class="input-field">
-                <option value="">Select class</option>
-                ${dataStore.classes.map(c => `<option value="${c}">${c}</option>`).join('')}
-              </select>
-              <button type="submit" class="btn">Add Student</button>
-            </form>
-          </div>
-        </div>
-      `;
+            <div class="space-y-6 animate-fade-in">
+              <h2 class="text-2xl font-bold flex items-center gap-2"><i data-lucide="users" class="w-6 h-6"></i> Students</h2>
+              <div class="card p-4 overflow-x-auto">
+                <table class="w-full text-left">
+                  <thead><tr class="border-b border-[var(--border)]"><th class="py-2">ID</th><th>Name</th><th>DOB</th><th>Class</th><th></th></tr></thead>
+                  <tbody>${rows || '<tr><td colspan="5" class="py-4 text-center text-[var(--text-secondary)]">No students.</td></tr>'}</tbody>
+                </table>
+              </div>
+              <div class="card p-4">
+                <h3 class="font-semibold mb-2">Add Student</h3>
+                <form onsubmit="addStudent(event)" class="space-y-3">
+                  <input type="text" id="newId" placeholder="ID" class="input-field" required>
+                  <input type="text" id="newName" placeholder="Full Name" class="input-field" required>
+                  <input type="text" id="newDob" placeholder="DOB (DD/MM/YYYY)" class="input-field" required>
+                  <input type="password" id="newPassword" placeholder="Password (min 6 chars)" class="input-field" minlength="6" required>
+                  <select id="newClass" class="input-field">
+                    <option value="">Select class</option>
+                    ${dataStore.classes.map(c => `<option value="${c}">${c}</option>`).join('')}
+                  </select>
+                  <button type="submit" class="btn">Add Student</button>
+                </form>
+              </div>
+            </div>
+          `;
         }
 
         async function addStudent(e) {
@@ -814,17 +806,9 @@
                 await alert('ID already exists.');
                 return;
             }
-            dataStore.users.push({
-                id,
-                name,
-                dob,
-                password,
-                role: 'student',
-                class: cls
-            });
+            dataStore.users.push({ id, name, dob, password, role: 'student', class: cls });
             await saveLocal();
             navigateTo('manage-students');
-            console.log(`%c✔ Student ${name} added`, 'color: #4ade80;');
         }
 
         async function removeStudent(id) {
@@ -835,73 +819,79 @@
             navigateTo('manage-students');
         }
 
+        // ---------- Manage Content ----------
         function renderManageContent() {
             const classOptions = dataStore.classes.map(c => `<option value="${c}">${c}</option>`).join('');
             const studentOptions = dataStore.users.filter(u => u.role === 'student').map(s => `<option value="${s.id}">${s.name} (${s.id})</option>`).join('');
             return `
-        <div class="space-y-8 animate-fade-in">
-          <h2 class="text-2xl font-bold flex items-center gap-2"><i data-lucide="edit" class="w-6 h-6"></i> Manage Content</h2>
-          <div class="card p-4">
-            <h3 class="font-semibold mb-2">Add Homework</h3>
-            <form onsubmit="addHomework(event)" class="space-y-3">
-              <input type="text" id="hwTitle" placeholder="Title" class="input-field" required>
-              <input type="text" id="hwDesc" placeholder="Description" class="input-field" required>
-              <input type="text" id="hwDue" placeholder="Due date (DD/MM/YYYY)" class="input-field">
-              <select id="hwClass" class="input-field" required>
-                <option value="">Select class</option>
-                ${classOptions}
-              </select>
-              <button type="submit" class="btn">Add Homework</button>
-            </form>
-          </div>
-          <div class="card p-4">
-            <h3 class="font-semibold mb-2">Add Daily Work</h3>
-            <form onsubmit="addDailyWork(event)" class="space-y-3">
-              <input type="text" id="dwTitle" placeholder="Title" class="input-field" required>
-              <input type="text" id="dwDesc" placeholder="Description" class="input-field" required>
-              <input type="text" id="dwDate" placeholder="Date (DD/MM/YYYY)" class="input-field">
-              <select id="dwClass" class="input-field" required>
-                <option value="">Select class</option>
-                ${classOptions}
-              </select>
-              <button type="submit" class="btn">Add Daily Work</button>
-            </form>
-          </div>
-          <div class="card p-4">
-            <h3 class="font-semibold mb-2">Add Weekly Plan</h3>
-            <form onsubmit="addWeeklyPlan(event)" class="space-y-3">
-              <input type="text" id="wpWeek" placeholder="Week (e.g., Week 1)" class="input-field" required>
-              <input type="text" id="wpPlan" placeholder="Plan details" class="input-field" required>
-              <select id="wpClass" class="input-field" required>
-                <option value="">Select class</option>
-                ${classOptions}
-              </select>
-              <button type="submit" class="btn">Add Weekly Plan</button>
-            </form>
-          </div>
-          <div class="card p-4">
-            <h3 class="font-semibold mb-2">Add Discipline Record</h3>
-            <form onsubmit="addDiscipline(event)" class="space-y-3">
-              <select id="discStudent" class="input-field" required>
-                <option value="">Select student</option>
-                ${studentOptions}
-              </select>
-              <input type="text" id="discNote" placeholder="Note" class="input-field" required>
-              <input type="text" id="discDate" placeholder="Date (DD/MM/YYYY)" class="input-field" required>
-              <button type="submit" class="btn">Add Record</button>
-            </form>
-          </div>
-          <div class="card p-4">
-            <h3 class="font-semibold mb-2">Clear All Content</h3>
-            <div class="flex flex-wrap gap-2">
-              <button onclick="clearContent('homeworks')" class="btn-outline btn"><i data-lucide="trash-2" class="w-4 h-4"></i> Clear Homework</button>
-              <button onclick="clearContent('dailyWorks')" class="btn-outline btn"><i data-lucide="trash-2" class="w-4 h-4"></i> Clear Daily Work</button>
-              <button onclick="clearContent('weeklyPlans')" class="btn-outline btn"><i data-lucide="trash-2" class="w-4 h-4"></i> Clear Weekly Plans</button>
-              <button onclick="clearContent('disciplineRecords')" class="btn-outline btn"><i data-lucide="trash-2" class="w-4 h-4"></i> Clear Discipline</button>
+            <div class="space-y-8 animate-fade-in">
+              <h2 class="text-2xl font-bold flex items-center gap-2"><i data-lucide="edit" class="w-6 h-6"></i> Manage Content</h2>
+              <!-- Add Homework -->
+              <div class="card p-4">
+                <h3 class="font-semibold mb-2">Add Homework</h3>
+                <form onsubmit="addHomework(event)" class="space-y-3">
+                  <input type="text" id="hwTitle" placeholder="Title" class="input-field" required>
+                  <input type="text" id="hwDesc" placeholder="Description" class="input-field" required>
+                  <input type="text" id="hwDue" placeholder="Due date (DD/MM/YYYY)" class="input-field">
+                  <select id="hwClass" class="input-field" required>
+                    <option value="">Select class</option>
+                    ${classOptions}
+                  </select>
+                  <button type="submit" class="btn">Add Homework</button>
+                </form>
+              </div>
+              <!-- Add Daily Work -->
+              <div class="card p-4">
+                <h3 class="font-semibold mb-2">Add Daily Work</h3>
+                <form onsubmit="addDailyWork(event)" class="space-y-3">
+                  <input type="text" id="dwTitle" placeholder="Title" class="input-field" required>
+                  <input type="text" id="dwDesc" placeholder="Description" class="input-field" required>
+                  <input type="text" id="dwDate" placeholder="Date (DD/MM/YYYY)" class="input-field">
+                  <select id="dwClass" class="input-field" required>
+                    <option value="">Select class</option>
+                    ${classOptions}
+                  </select>
+                  <button type="submit" class="btn">Add Daily Work</button>
+                </form>
+              </div>
+              <!-- Add Weekly Plan -->
+              <div class="card p-4">
+                <h3 class="font-semibold mb-2">Add Weekly Plan</h3>
+                <form onsubmit="addWeeklyPlan(event)" class="space-y-3">
+                  <input type="text" id="wpWeek" placeholder="Week (e.g., Week 1)" class="input-field" required>
+                  <input type="text" id="wpPlan" placeholder="Plan details" class="input-field" required>
+                  <select id="wpClass" class="input-field" required>
+                    <option value="">Select class</option>
+                    ${classOptions}
+                  </select>
+                  <button type="submit" class="btn">Add Weekly Plan</button>
+                </form>
+              </div>
+              <!-- Add Discipline -->
+              <div class="card p-4">
+                <h3 class="font-semibold mb-2">Add Discipline Record</h3>
+                <form onsubmit="addDiscipline(event)" class="space-y-3">
+                  <select id="discStudent" class="input-field" required>
+                    <option value="">Select student</option>
+                    ${studentOptions}
+                  </select>
+                  <input type="text" id="discNote" placeholder="Note" class="input-field" required>
+                  <input type="text" id="discDate" placeholder="Date (DD/MM/YYYY)" class="input-field" required>
+                  <button type="submit" class="btn">Add Record</button>
+                </form>
+              </div>
+              <!-- Clear Content -->
+              <div class="card p-4">
+                <h3 class="font-semibold mb-2">Clear All Content</h3>
+                <div class="flex flex-wrap gap-2">
+                  <button onclick="clearContent('homeworks')" class="btn-outline btn"><i data-lucide="trash-2" class="w-4 h-4"></i> Clear Homework</button>
+                  <button onclick="clearContent('dailyWorks')" class="btn-outline btn"><i data-lucide="trash-2" class="w-4 h-4"></i> Clear Daily Work</button>
+                  <button onclick="clearContent('weeklyPlans')" class="btn-outline btn"><i data-lucide="trash-2" class="w-4 h-4"></i> Clear Weekly Plans</button>
+                  <button onclick="clearContent('disciplineRecords')" class="btn-outline btn"><i data-lucide="trash-2" class="w-4 h-4"></i> Clear Discipline</button>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      `;
+          `;
         }
 
         async function addHomework(e) {
@@ -911,12 +901,7 @@
             const due = document.getElementById('hwDue').value.trim();
             const cls = document.getElementById('hwClass').value;
             if (!title || !desc || !cls) return;
-            dataStore.homeworks.push({
-                title,
-                description: desc,
-                dueDate: due,
-                class: cls
-            });
+            dataStore.homeworks.push({ title, description: desc, dueDate: due, class: cls });
             await saveLocal();
             navigateTo('manage-content');
         }
@@ -928,12 +913,7 @@
             const date = document.getElementById('dwDate').value.trim();
             const cls = document.getElementById('dwClass').value;
             if (!title || !desc || !cls) return;
-            dataStore.dailyWorks.push({
-                title,
-                description: desc,
-                date,
-                class: cls
-            });
+            dataStore.dailyWorks.push({ title, description: desc, date, class: cls });
             await saveLocal();
             navigateTo('manage-content');
         }
@@ -944,11 +924,7 @@
             const plan = document.getElementById('wpPlan').value.trim();
             const cls = document.getElementById('wpClass').value;
             if (!week || !plan || !cls) return;
-            dataStore.weeklyPlans.push({
-                week,
-                plan,
-                class: cls
-            });
+            dataStore.weeklyPlans.push({ week, plan, class: cls });
             await saveLocal();
             navigateTo('manage-content');
         }
@@ -959,11 +935,7 @@
             const note = document.getElementById('discNote').value.trim();
             const date = document.getElementById('discDate').value.trim();
             if (!studentId || !note || !date) return;
-            dataStore.disciplineRecords.push({
-                studentId,
-                note,
-                date
-            });
+            dataStore.disciplineRecords.push({ studentId, note, date });
             await saveLocal();
             navigateTo('manage-content');
         }
@@ -976,18 +948,19 @@
             }
         }
 
+        // ---------- Change Password ----------
         function renderChangePassword() {
             return `
-        <div class="space-y-6 animate-fade-in max-w-md">
-          <h2 class="text-2xl font-bold flex items-center gap-2"><i data-lucide="key" class="w-6 h-6"></i> Change Password</h2>
-          <div class="card p-4 space-y-3">
-            <input type="password" id="oldPass" placeholder="Current password" class="input-field">
-            <input type="password" id="newPass" placeholder="New password (min 6 chars)" class="input-field" minlength="6">
-            <button onclick="changePassword()" class="btn w-full justify-center">Update</button>
-            <p id="passMsg" class="text-sm hidden"></p>
-          </div>
-        </div>
-      `;
+            <div class="space-y-6 animate-fade-in max-w-md">
+              <h2 class="text-2xl font-bold flex items-center gap-2"><i data-lucide="key" class="w-6 h-6"></i> Change Password</h2>
+              <div class="card p-4 space-y-3">
+                <input type="password" id="oldPass" placeholder="Current password" class="input-field">
+                <input type="password" id="newPass" placeholder="New password (min 6 chars)" class="input-field" minlength="6">
+                <button onclick="changePassword()" class="btn w-full justify-center">Update</button>
+                <p id="passMsg" class="text-sm hidden"></p>
+              </div>
+            </div>
+          `;
         }
 
         async function changePassword() {
@@ -1016,6 +989,7 @@
             msg.classList.remove('hidden');
         }
 
+        // ---------- Theme Toggle ----------
         function toggleTheme() {
             const current = document.body.classList.contains('light') ? 'light' : 'dark';
             const next = current === 'dark' ? 'light' : 'dark';
@@ -1034,6 +1008,7 @@
             initLucide();
         }
 
+        // ---------- Logout ----------
         function logout() {
             currentUser = null;
             document.getElementById('appScreen').classList.add('hidden');
@@ -1044,6 +1019,7 @@
             closeSidebar();
         }
 
+        // ---------- Sidebar ----------
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             sidebar.classList.toggle('collapsed');
@@ -1059,12 +1035,14 @@
             document.getElementById('sidebarOverlay').classList.remove('show');
         }
 
-        // ---------- INIT ----------
+        // ---------- Startup ----------
         window.addEventListener('DOMContentLoaded', async () => {
-            await initialDataLoad(); // fetch from Supabase & merge with localStorage
+            await initialDataLoad();
             initLucide();
         });
     </script>
+
+    <!-- Service Worker Registration -->
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
