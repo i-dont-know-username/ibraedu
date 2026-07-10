@@ -1086,10 +1086,26 @@
         }
 
         // ---------- Startup ----------
-        window.addEventListener('DOMContentLoaded', async () => {
-            await initialDataLoad();
-            initLucide();
-        });
+        // ---------- Startup ----------
+window.addEventListener('DOMContentLoaded', async () => {
+    await initialDataLoad();
+    initLucide();
+    
+    // Check for a saved login session AFTER data is fully loaded from Supabase/LocalStorage
+    const savedUserId = localStorage.getItem('IbraEdu_LoggedInUserId');
+    if (savedUserId && dataStore.users && dataStore.users.length > 0) {
+        const user = dataStore.users.find(u => u.id === savedUserId);
+        if (user) {
+            currentUser = user;
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('appScreen').classList.remove('hidden');
+            initDashboard();
+            requestNotificationPermission();
+            startPolling();
+            console.log(`%c✔ Automatically logged in as ${user.name}`, 'color: #4ade80;');
+        }
+    }
+});
     </script>
 
     <!-- Service Worker Registration -->
