@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -5,11 +6,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
     <title>IbraEdu - LMS</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f5f5f5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M22 10v6M2 10l10-5 10 5-10 5z'/><path d='M6 12v5c0 2 4 3 6 3s6-1 6-3v-5'/></svg>" />
+    <link rel="icon" href="data:image/svg+xml,&lt;svg xmlns=&#39;http://www.w3.org/2000/svg&#39; viewBox=&#39;0 0 24 24&#39; fill=&#39;none&#39; stroke=&#39;%23f5f5f5&#39; stroke-width=&#39;2&#39; stroke-linecap=&#39;round&#39; stroke-linejoin=&#39;round&#39;&gt;&lt;path d=&#39;M22 10v6M2 10l10-5 10 5-10 5z&#39;/&gt;&lt;path d=&#39;M6 12v5c0 2 4 3 6 3s6-1 6-3v-5&#39;/&gt;&lt;/svg&gt;" />
     <link rel="manifest" href="./manifest.json" crossorigin="use-credentials">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
             font-family: 'Inter', sans-serif;
@@ -124,12 +125,6 @@
             background: var(--text);
         }
 
-        .sidebar.collapsed {
-            transform: translateX(-100%);
-            width: 0;
-            overflow: hidden;
-        }
-
         @media (min-width: 769px) {
             .sidebar {
                 transition: transform 0.3s ease, width 0.3s ease;
@@ -141,6 +136,7 @@
                 min-width: 0;
                 padding: 0;
                 border: none;
+                overflow: hidden;
             }
 
             .sidebar-overlay-desktop {
@@ -348,6 +344,10 @@
         };
         let previousData = null;
 
+        // Variables for the updated database synchronization fix
+        let recordId = null; // Track database row identity internally
+        let isSaving = false; // Lock parameter to prevent race-condition overwrite during active writes
+
         // ---------- Modal / Alert / Confirm ----------
         function showModal(message, isConfirm = false) {
             return new Promise((resolve) => {
@@ -380,11 +380,17 @@
             try {
                 const { data, error } = await supabaseClient
                     .from("ibraedu_data")
-                    .select("lms_json")
+                    .select("id, lms_json")
                     .limit(1)
                     .maybeSingle();
+                
                 if (error) throw error;
-                return data ? data.lms_json : null;
+                
+                if (data) {
+                    recordId = data.id; // Correctly bind internal table ID
+                    return data.lms_json;
+                }
+                return null;
             } catch (err) {
                 console.error('Supabase fetch error:', err);
                 return null;
@@ -392,23 +398,36 @@
         }
 
         async function saveLocal() {
+            isSaving = true; // Lock sync thread
             localStorage.setItem(STORAGE_KEY, JSON.stringify(dataStore));
             try {
-                const { data: existing } = await supabaseClient
-                    .from('ibraedu_data')
-                    .select('lms_json');
-                if (existing && existing.length > 0) {
-                    await supabaseClient
+                if (recordId) {
+                    // Update exact configuration row cleanly
+                    const { error } = await supabaseClient
                         .from('ibraedu_data')
-                        .delete()
-                        .not('lms_json', 'is', null);
+                        .update({ lms_json: dataStore })
+                        .eq('id', recordId);
+                    
+                    if (error) throw error;
+                } else {
+                    // Fallback to insertion if recordId is missing and capture returned payload id
+                    const { data, error } = await supabaseClient
+                        .from('ibraedu_data')
+                        .insert({ lms_json: dataStore })
+                        .select('id')
+                        .maybeSingle();
+                    
+                    if (error) throw error;
+                    if (data) recordId = data.id;
                 }
-                await supabaseClient
-                    .from('ibraedu_data')
-                    .insert({ lms_json: dataStore });
                 console.log('%c✔ Synced to Supabase', 'color: #4ade80;');
             } catch (err) {
                 console.warn('Supabase sync error (offline?):', err);
+            } finally {
+                // Keep lock operational briefly to secure backend stability
+                setTimeout(() => {
+                    isSaving = false;
+                }, 1000);
             }
             console.log('%c✔ Data saved to localStorage', 'color:#60a5fa;');
         }
@@ -433,8 +452,10 @@
             }
         }
 
-        // Polling every 5 seconds (after login)
+        // Polling logic with overwrite lock checks
         async function pollSupabase() {
+            if (isSaving) return; // Prevent overwriting active unsaved progress
+            
             const newData = await fetchDataFromSupabase();
             if (newData) {
                 if (!previousData) previousData = JSON.parse(JSON.stringify(dataStore));
@@ -469,7 +490,7 @@
                 message = message.slice(0, -2);
                 new Notification('IbraEdu Update', {
                     body: message,
-                    icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23f5f5f5" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 4 3 6 3s6-1 6-3v-5"/></svg>'
+                    icon: 'data:image/svg+xml,&lt;svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23f5f5f5" stroke-width="2"&gt;&lt;path d="M22 10v6M2 10l10-5 10 5-10 5z"/&gt;&lt;path d="M6 12v5c0 2 4 3 6 3s6-1 6-3v-5"/&gt;&lt;/svg&gt;'
                 });
             }
         }
@@ -481,21 +502,25 @@
             }
         }
 
-        // ---------- Initial Data Load (with default row creation) ----------
+        // ---------- Initial Data Load ----------
         async function initialDataLoad() {
             loadLocal();
             console.log('Attempting to fetch data from Supabase...');
             let supabaseData = await fetchDataFromSupabase();
             if (!supabaseData) {
-                console.log('No data found in Supabase, inserting default row to trigger table default...');
-                const { error: insertError } = await supabaseClient
+                console.log('No data found in Supabase, inserting default row...');
+                const { data, error: insertError } = await supabaseClient
                     .from('ibraedu_data')
-                    .insert({}); // empty object triggers column default
+                    .insert({ lms_json: dataStore }) // Setup defaults inside Supabase using local values
+                    .select('id, lms_json')
+                    .maybeSingle();
+                
                 if (insertError) {
                     console.error('Failed to create default row:', insertError);
-                } else {
-                    console.log('Default row created, fetching again...');
-                    supabaseData = await fetchDataFromSupabase();
+                } else if (data) {
+                    recordId = data.id;
+                    supabaseData = data.lms_json;
+                    console.log('Default row created successfully!');
                 }
             }
             if (supabaseData) {
@@ -509,6 +534,22 @@
                 console.log('✔ Data loaded from Supabase, users:', dataStore.users.length);
             } else {
                 console.warn('Could not load data from Supabase, using local cache only.');
+            }
+
+            // check and execute auto login session persistence logic
+            const savedUserId = localStorage.getItem('IbraEdu_LoggedInUserId');
+            if (savedUserId) {
+                const user = dataStore.users.find(u => u.id === savedUserId);
+                if (user) {
+                    currentUser = user;
+                    document.getElementById('loginScreen').classList.add('hidden');
+                    document.getElementById('appScreen').classList.remove('hidden');
+                    initDashboard();
+                    initLucide();
+                    requestNotificationPermission();
+                    startPolling();
+                    console.log(`%c✔ Auto-logged in session resolved as ${user.name}`, 'color: #4ade80;');
+                }
             }
         }
 
@@ -542,6 +583,8 @@
                 return;
             }
             currentUser = user;
+            // Store user identity to establish persistence
+            localStorage.setItem('IbraEdu_LoggedInUserId', user.id);
             document.getElementById('loginScreen').classList.add('hidden');
             document.getElementById('appScreen').classList.remove('hidden');
             initDashboard();
@@ -1011,6 +1054,8 @@
         // ---------- Logout ----------
         function logout() {
             currentUser = null;
+            // Clear session persistence parameters
+            localStorage.removeItem('IbraEdu_LoggedInUserId');
             document.getElementById('appScreen').classList.add('hidden');
             document.getElementById('loginScreen').classList.remove('hidden');
             document.getElementById('loginId').value = '';
@@ -1022,10 +1067,15 @@
         // ---------- Sidebar ----------
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
-            sidebar.classList.toggle('collapsed');
             if (window.innerWidth <= 768) {
+                // Safeguard against collapsed class conflict on mobile viewports
+                sidebar.classList.remove('collapsed');
                 sidebar.classList.toggle('open');
                 document.getElementById('sidebarOverlay').classList.toggle('show');
+            } else {
+                // Safely toggle collapsed on desktop configurations
+                sidebar.classList.remove('open');
+                sidebar.classList.toggle('collapsed');
             }
         }
 
