@@ -333,10 +333,11 @@
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndzeHV6eGlhbmpxZGFhZXRhcGhpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM0Mzg0MjYsImV4cCI6MjA5OTAxNDQyNn0.YNWg9o94WvOJcN3WZ03VQGg3fN3wPaljllSSV6Ej-E4';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // ---------- DEFAULT SEED DATA ----------
-        const DEFAULT_LMS_DATA = {
-            users: [
-            ],
+        // ---------- DATA STORE (NO defaults) ----------
+        const STORAGE_KEY = 'IbraEdu Database';
+        let currentUser = null;
+        let dataStore = {
+            users: [],
             classes: [],
             homeworks: [],
             dailyWorks: [],
@@ -344,11 +345,7 @@
             disciplineRecords: []
         };
 
-        const STORAGE_KEY = 'IbraEdu Database';
-        let currentUser = null;
-        let dataStore = {
-            ...DEFAULT_LMS_DATA
-        };
+        let previousData = null; // for change detection
 
         function showModal(message, isConfirm = false) {
             return new Promise((resolve) => {
@@ -371,85 +368,48 @@
         window.alert = (msg) => showModal(msg, false);
         window.confirm = (msg) => showModal(msg, true);
 
-        // ---------- DATA PERSISTENCE (Supabase + localStorage) ----------
-        async function fetchInitialData() {
-    try {
-        const { data, error } = await supabaseClient
-            .from("ibraedu_data")
-            .select("lms_json")
-            .limit(1)
-            .maybeSingle();
-
-        if (error) {
-            console.error(error);
-            return;
+        // ---------- Lucide icons ----------
+        function initLucide() {
+            lucide.createIcons();
         }
 
-        if (!data) {
-            console.log("No row found. Creating...");
+        // ---------- DATA PERSISTENCE ----------
+        async function fetchDataFromSupabase() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from("ibraedu_data")
+                    .select("lms_json")
+                    .limit(1)
+                    .maybeSingle();
 
-            const { error: insertError } = await supabaseClient
-                .from("ibraedu_data")
-                .insert({
-                    lms_json: DEFAULT_LMS_DATA
-                });
-
-            if (insertError) {
-                console.error(insertError);
+                if (error) throw error;
+                return data ? data.lms_json : null;
+            } catch (err) {
+                console.error('Supabase fetch error:', err);
+                return null;
             }
-
-            dataStore = structuredClone(DEFAULT_LMS_DATA);
-            return;
         }
-
-        dataStore = data.lms_json;
-
-        console.log("✔ Loaded from Supabase");
-
-    } catch (err) {
-        console.error(err);
-    }
-}
 
         async function saveLocal() {
-            // Always cache locally first
             localStorage.setItem(STORAGE_KEY, JSON.stringify(dataStore));
 
-            // Sync to Supabase (table has no primary key, so we manage single row manually)
             try {
-                // Check if any rows exist
-                const {
-                    data: existingRows
-                } = await supabaseClient
+                // Keep a single row in Supabase
+                const { data: existing } = await supabaseClient
                     .from('ibraedu_data')
                     .select('lms_json');
-
-                // Delete all existing rows (to keep exactly one row)
-                if (existingRows && existingRows.length > 0) {
-                    // Delete rows that have lms_json (i.e., all rows)
+                if (existing && existing.length > 0) {
                     await supabaseClient
                         .from('ibraedu_data')
                         .delete()
                         .not('lms_json', 'is', null);
                 }
-
-                // Insert the new single row
-                const {
-                    error
-                } = await supabaseClient
+                await supabaseClient
                     .from('ibraedu_data')
-                    .update({
-                        lms_json: dataStore
-                    })
-                    .not('lms_json', 'is', null);
-
-                if (error) {
-                    console.warn('Supabase sync failed:', error);
-                } else {
-                    console.log('%c✔ Synced to Supabase', 'color: #4ade80;');
-                }
+                    .insert({ lms_json: dataStore });
+                console.log('%c✔ Synced to Supabase', 'color: #4ade80;');
             } catch (err) {
-                console.warn('Supabase sync error (network). Data saved locally only.', err);
+                console.warn('Supabase sync error (offline?):', err);
             }
             console.log('%c✔ Data saved to localStorage', 'color:#60a5fa;');
         }
@@ -459,21 +419,91 @@
             if (saved) {
                 try {
                     const parsed = JSON.parse(saved);
-                    dataStore = {
-                        ...dataStore,
-                        ...parsed
-                    };
+                    dataStore.users = parsed.users || [];
+                    dataStore.classes = parsed.classes || [];
+                    dataStore.homeworks = parsed.homeworks || [];
+                    dataStore.dailyWorks = parsed.dailyWorks || [];
+                    dataStore.weeklyPlans = parsed.weeklyPlans || [];
+                    dataStore.disciplineRecords = parsed.disciplineRecords || [];
                     console.log('%c✔ Data loaded from localStorage', 'color: #4ade80;');
                 } catch (e) {
-                    console.log('%c⚠ Corrupted local data', 'color: #ef4444;');
+                    console.warn('Corrupted localStorage data');
                 }
-            } else {
-                console.log('%cℹ No localStorage data, using defaults', 'color: #60a5fa;');
             }
         }
 
-        function initLucide() {
-            lucide.createIcons();
+        // Poll Supabase every 5 seconds and update local store
+        async function pollSupabase() {
+            const newData = await fetchDataFromSupabase();
+            if (newData) {
+                if (!previousData) previousData = JSON.parse(JSON.stringify(dataStore));
+
+                dataStore.users = newData.users || [];
+                dataStore.classes = newData.classes || [];
+                dataStore.homeworks = newData.homeworks || [];
+                dataStore.dailyWorks = newData.dailyWorks || [];
+                dataStore.weeklyPlans = newData.weeklyPlans || [];
+                dataStore.disciplineRecords = newData.disciplineRecords || [];
+
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(dataStore));
+
+                checkAndNotify(newData);
+                previousData = newData;
+            }
+        }
+
+        function checkAndNotify(newData) {
+            if (!previousData) return;
+            if (Notification.permission !== 'granted') return;
+
+            const prev = previousData;
+            const newHomeworks = newData.homeworks?.length > prev.homeworks?.length;
+            const newDaily = newData.dailyWorks?.length > prev.dailyWorks?.length;
+            const newPlans = newData.weeklyPlans?.length > prev.weeklyPlans?.length;
+            const newDisc = newData.disciplineRecords?.length > prev.disciplineRecords?.length;
+
+            let message = '';
+            if (newHomeworks) message += 'New homework, ';
+            if (newDaily) message += 'New daily work, ';
+            if (newPlans) message += 'New weekly plan, ';
+            if (newDisc) message += 'New discipline record, ';
+
+            if (message) {
+                message = message.slice(0, -2);
+                new Notification('IbraEdu Update', {
+                    body: message,
+                    icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23f5f5f5" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 4 3 6 3s6-1 6-3v-5"/></svg>'
+                });
+            }
+        }
+
+        function requestNotificationPermission() {
+            if (!('Notification' in window)) return;
+            if (Notification.permission === 'default') {
+                Notification.requestPermission().then(perm => {
+                    console.log('Notification permission:', perm);
+                });
+            }
+        }
+
+        function startPolling() {
+            pollSupabase(); // immediate
+            setInterval(pollSupabase, 5000);
+        }
+
+        // ---------- INITIAL LOAD (load Supabase data before login) ----------
+        async function initialDataLoad() {
+            loadLocal(); // cached first
+            const supabaseData = await fetchDataFromSupabase();
+            if (supabaseData) {
+                dataStore.users = supabaseData.users || [];
+                dataStore.classes = supabaseData.classes || [];
+                dataStore.homeworks = supabaseData.homeworks || [];
+                dataStore.dailyWorks = supabaseData.dailyWorks || [];
+                dataStore.weeklyPlans = supabaseData.weeklyPlans || [];
+                dataStore.disciplineRecords = supabaseData.disciplineRecords || [];
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(dataStore));
+            }
         }
 
         // ---------- LOGIN ----------
@@ -510,6 +540,8 @@
             document.getElementById('appScreen').classList.remove('hidden');
             initDashboard();
             initLucide();
+            requestNotificationPermission();
+            startPolling();
             console.log(`%c✔ Logged in as ${user.name}`, 'color: #4ade80;');
         }
 
@@ -1029,24 +1061,7 @@
 
         // ---------- INIT ----------
         window.addEventListener('DOMContentLoaded', async () => {
-            loadLocal();
-            await fetchInitialData();
-
-            // If no users exist at all, seed with defaults
-            if (dataStore.users.length === 0) {
-                console.log('%cℹ No users found, reseeding with defaults', 'color: #60a5fa;');
-                dataStore = {
-                    ...DEFAULT_LMS_DATA
-                };
-                await saveLocal();
-            }
-
-            // Ensure at least one class exists
-            if (!dataStore.classes.length) {
-                dataStore.classes.push('Grade 4');
-                await saveLocal();
-            }
-
+            await initialDataLoad(); // fetch from Supabase & merge with localStorage
             initLucide();
         });
     </script>
