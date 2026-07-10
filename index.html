@@ -5,15 +5,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
     <title>IbraEdu - LMS</title>
-    <link rel="icon"
-    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f5f5f5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M22 10v6M2 10l10-5 10 5-10 5z'/><path d='M6 12v5c0 2 4 3 6 3s6-1 6-3v-5'/></svg>" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f5f5f5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M22 10v6M2 10l10-5 10 5-10 5z'/><path d='M6 12v5c0 2 4 3 6 3s6-1 6-3v-5'/></svg>" />
     <link rel="manifest" href="./manifest.json" crossorigin="use-credentials">
-    <script src="https://cdn.tailwindcss.com">
-    </script>
-    <script src="https://unpkg.com/lucide@latest">
-    </script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;500;600;700&display=swap"
-    rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
             font-family: 'Inter', sans-serif;
@@ -168,18 +164,6 @@
                 transform: translateX(0);
             }
 
-            /* On mobile, never let collapsed interfere */
-            .sidebar.collapsed {
-                transform: translateX(-100%);
-                width: 16rem;
-                overflow: auto;
-            }
-            .sidebar.collapsed.open {
-                transform: translateX(0);
-                width: 16rem;
-                overflow: auto;
-            }
-
             .overlay {
                 display: none;
                 position: fixed;
@@ -227,35 +211,6 @@
             max-width: 90vw;
             width: 400px;
         }
-
-        /* Live update toast */
-        .update-toast {
-            position: fixed;
-            bottom: 1.5rem;
-            right: 1.5rem;
-            z-index: 90;
-            background-color: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 0.75rem;
-            padding: 0.75rem 1.25rem;
-            box-shadow: var(--shadow);
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            cursor: pointer;
-            animation: slideUp 0.4s ease-out;
-            max-width: 90vw;
-        }
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
     </style>
 </head>
 
@@ -269,15 +224,6 @@
                 <button id="modalConfirm" class="btn">OK</button>
             </div>
         </div>
-    </div>
-
-    <!-- Live update toast (hidden by default) -->
-    <div id="updateToast" class="update-toast hidden" onclick="dismissToast()">
-        <i data-lucide="bell" class="w-5 h-5 flex-shrink-0"></i>
-        <span id="toastMessage" class="text-sm"></span>
-        <button class="text-[var(--text-secondary)] hover:text-[var(--text)] ml-2 flex-shrink-0" onclick="event.stopPropagation();dismissToast();">
-            <i data-lucide="x" class="w-4 h-4"></i>
-        </button>
     </div>
 
     <div id="loginScreen" class="flex items-center justify-center min-h-screen p-4">
@@ -349,8 +295,7 @@
             </nav>
             <div class="mt-auto flex items-center justify-between pt-4 border-t border-[var(--border)]">
                 <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 rounded-full bg-[var(--text)] flex items-center justify-center text-[var(--bg)] text-sm font-bold"
-                    id="userInitial">U</div>
+                    <div class="w-8 h-8 rounded-full bg-[var(--text)] flex items-center justify-center text-[var(--bg)] text-sm font-bold" id="userInitial">U</div>
                     <span id="userName" class="text-sm font-medium"></span>
                 </div>
                 <div class="flex gap-2">
@@ -370,12 +315,12 @@
                     <i data-lucide="menu" class="w-5 h-5"></i>
                 </button>
                 <span class="font-bold text-lg hidden md:inline">IbraEdu</span>
-                <span id="onlineStatus" class="text-xs px-2 py-1 rounded-full ml-auto hidden"></span>
             </div>
             <main class="flex-1 p-6 overflow-y-auto" id="mainContent"></main>
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         (function() {
             console.log('%c IbraEdu LMS %c Production Mode ',
@@ -383,25 +328,15 @@
                 'background:#171717;color:#a3a3a3;padding:4px 8px;border-radius:0 4px 4px 0;');
         })();
 
-        // ---------- CONFIGURATION ----------
-        const STORAGE_KEY = 'IbraEdu Database';
-        const CREDENTIALS_KEY = 'IbraEdu SavedCredentials';
-        const LAST_SYNC_KEY = 'IbraEdu LastSync';
-        const JSONBIN_API_KEY = '$2a$10$hQ3HDwCIN83qgNwvlrPyQua6sA0xruLEr8gjr51Nk/8IIUK78OCnq';
-        const JSONBIN_BIN_ID = '6a4cfc59f5f4af5e296c4952';
-        const POLL_INTERVAL_VISIBLE = 20000; // 20 seconds when tab is visible
-        const POLL_INTERVAL_HIDDEN = 60000; // 60 seconds when tab is hidden
+        // ---------- SUPABASE CONFIG ----------
+        const SUPABASE_URL = 'https://wsxuzxianjqdaaetaphi.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndzeHV6eGlhbmpxZGFhZXRhcGhpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM0Mzg0MjYsImV4cCI6MjA5OTAxNDQyNn0.YNWg9o94WvOJcN3WZ03VQGg3fN3wPaljllSSV6Ej-E4';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // ---------- GLOBAL STATE ----------
-        let currentUser = null;
-        let currentPage = null;
-        let pollingInterval = null;
-        let lastKnownTimestamps = {}; // Track last known createdAt per category+class for change detection
-        let lastChangeMadeByMe = null; // Timestamp of last change made by current user (to avoid self-notification)
-        let isOnline = navigator.onLine;
-
-        let dataStore = {
-            users: [],
+        // ---------- DEFAULT SEED DATA ----------
+        const DEFAULT_LMS_DATA = {
+            users: [
+            ],
             classes: [],
             homeworks: [],
             dailyWorks: [],
@@ -409,26 +344,12 @@
             disciplineRecords: []
         };
 
-        // ---------- UNIQUE ID GENERATOR ----------
-        function generateId() {
-            return 'id_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
-        }
+        const STORAGE_KEY = 'IbraEdu Database';
+        let currentUser = null;
+        let dataStore = {
+            ...DEFAULT_LMS_DATA
+        };
 
-        // Ensure all existing items have IDs and createdAt timestamps
-        function ensureIdsAndTimestamps() {
-            const categories = ['homeworks', 'dailyWorks', 'weeklyPlans', 'disciplineRecords'];
-            const now = Date.now();
-            categories.forEach(cat => {
-                if (!Array.isArray(dataStore[cat])) dataStore[cat] = [];
-                dataStore[cat].forEach((item, i) => {
-                    if (!item._id) item._id = generateId();
-                    if (!item._createdAt) item._createdAt = now - (dataStore[cat].length - i) *
-                        1000; // Stagger timestamps
-                });
-            });
-        }
-
-        // ---------- MODAL / ALERT ----------
         function showModal(message, isConfirm = false) {
             return new Promise((resolve) => {
                 const modal = document.getElementById('customModal');
@@ -450,110 +371,87 @@
         window.alert = (msg) => showModal(msg, false);
         window.confirm = (msg) => showModal(msg, true);
 
-        // ---------- TOAST FOR LIVE UPDATES ----------
-        let toastTimer = null;
+        // ---------- DATA PERSISTENCE (Supabase + localStorage) ----------
+        async function fetchInitialData() {
+    try {
+        const { data, error } = await supabaseClient
+            .from("ibraedu_data")
+            .select("lms_json")
+            .limit(1)
+            .maybeSingle();
 
-        function showToast(message) {
-            const toast = document.getElementById('updateToast');
-            document.getElementById('toastMessage').textContent = message;
-            toast.classList.remove('hidden');
-            if (toastTimer) clearTimeout(toastTimer);
-            toastTimer = setTimeout(() => {
-                toast.classList.add('hidden');
-            }, 6000);
-            initLucide();
+        if (error) {
+            console.error(error);
+            return;
         }
 
-        function dismissToast() {
-            const toast = document.getElementById('updateToast');
-            toast.classList.add('hidden');
-            if (toastTimer) clearTimeout(toastTimer);
-        }
+        if (!data) {
+            console.log("No row found. Creating...");
 
-        // ---------- BROWSER NOTIFICATIONS ----------
-        function requestNotificationPermission() {
-            if ('Notification' in window && Notification.permission === 'default') {
-                Notification.requestPermission().then(perm => {
-                    console.log('%c🔔 Notification permission: ' + perm, 'color:#fbbf24;');
+            const { error: insertError } = await supabaseClient
+                .from("ibraedu_data")
+                .insert({
+                    lms_json: DEFAULT_LMS_DATA
                 });
+
+            if (insertError) {
+                console.error(insertError);
             }
+
+            dataStore = structuredClone(DEFAULT_LMS_DATA);
+            return;
         }
 
-        function sendBrowserNotification(title, body) {
-            if ('Notification' in window && Notification.permission === 'granted') {
-                try {
-                    const notif = new Notification(title, {
-                        body: body,
-                        icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23f5f5f5" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 4 3 6 3s6-1 6-3v-5"/></svg>',
-                        tag: 'ibraedu-update',
-                        requireInteraction: false,
-                    });
-                    notif.onclick = () => {
-                        window.focus();
-                        notif.close();
-                        dismissToast();
-                        // Refresh current page
-                        if (currentPage) navigateTo(currentPage);
-                    };
-                } catch (e) {
-                    // Fallback: notifications might not be supported
+        dataStore = data.lms_json;
+
+        console.log("✔ Loaded from Supabase");
+
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+        async function saveLocal() {
+            // Always cache locally first
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(dataStore));
+
+            // Sync to Supabase (table has no primary key, so we manage single row manually)
+            try {
+                // Check if any rows exist
+                const {
+                    data: existingRows
+                } = await supabaseClient
+                    .from('ibraedu_data')
+                    .select('lms_json');
+
+                // Delete all existing rows (to keep exactly one row)
+                if (existingRows && existingRows.length > 0) {
+                    // Delete rows that have lms_json (i.e., all rows)
+                    await supabaseClient
+                        .from('ibraedu_data')
+                        .delete()
+                        .not('lms_json', 'is', null);
                 }
-            }
-        }
 
-        function notifyUser(title, body) {
-            sendBrowserNotification(title, body);
-            showToast(body);
-        }
+                // Insert the new single row
+                const {
+                    error
+                } = await supabaseClient
+                    .from('ibraedu_data')
+                    .update({
+                        lms_json: dataStore
+                    })
+                    .not('lms_json', 'is', null);
 
-        // ---------- ONLINE / OFFLINE DETECTION ----------
-        function updateOnlineStatus() {
-            isOnline = navigator.onLine;
-            const statusEl = document.getElementById('onlineStatus');
-            if (statusEl) {
-                if (!isOnline) {
-                    statusEl.textContent = 'Offline';
-                    statusEl.className = 'text-xs px-2 py-1 rounded-full ml-auto bg-red-400/20 text-red-400';
-                    statusEl.classList.remove('hidden');
+                if (error) {
+                    console.warn('Supabase sync failed:', error);
                 } else {
-                    statusEl.classList.add('hidden');
+                    console.log('%c✔ Synced to Supabase', 'color: #4ade80;');
                 }
+            } catch (err) {
+                console.warn('Supabase sync error (network). Data saved locally only.', err);
             }
-            console.log('%c🌐 ' + (isOnline ? 'Online' : 'Offline'), 'color:' + (isOnline ? '#4ade80' : '#ef4444') + ';');
-            if (isOnline && currentUser) {
-                // Immediately check for updates when coming back online
-                checkForUpdates(true);
-            }
-        }
-
-        window.addEventListener('online', updateOnlineStatus);
-        window.addEventListener('offline', updateOnlineStatus);
-
-        // ---------- DATA PERSISTENCE ----------
-        async function fetchFromJSONBin() {
-            if (!isOnline) throw new Error('Offline');
-            const res = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}/latest`, {
-                headers: { 'X-Master-Key': JSONBIN_API_KEY },
-                cache: 'no-store',
-            });
-            if (!res.ok) throw new Error('JSONBin fetch failed: ' + res.status);
-            const json = await res.json();
-            return json.record;
-        }
-
-        async function pushToJSONBin(data) {
-            if (!isOnline) throw new Error('Offline');
-            const response = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Master-Key': JSONBIN_API_KEY,
-                },
-                body: JSON.stringify(data),
-                cache: 'no-store',
-            });
-            if (!response.ok) throw new Error('JSONBin push failed: ' + response.status);
-            return true;
+            console.log('%c✔ Data saved to localStorage', 'color:#60a5fa;');
         }
 
         function loadLocal() {
@@ -561,147 +459,21 @@
             if (saved) {
                 try {
                     const parsed = JSON.parse(saved);
-                    dataStore = { ...dataStore, ...parsed };
+                    dataStore = {
+                        ...dataStore,
+                        ...parsed
+                    };
                     console.log('%c✔ Data loaded from localStorage', 'color: #4ade80;');
                 } catch (e) {
                     console.log('%c⚠ Corrupted local data', 'color: #ef4444;');
                 }
-            }
-            ensureIdsAndTimestamps();
-            updateLastKnownTimestamps();
-        }
-
-        function saveLocalOnly() {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(dataStore));
-            updateLastKnownTimestamps();
-        }
-
-        async function saveData() {
-            // Always save locally first
-            saveLocalOnly();
-            // Then try cloud sync
-            if (isOnline) {
-                try {
-                    await pushToJSONBin(dataStore);
-                    console.log('%c✔ Synced to JSONBin.io', 'color: #4ade80;');
-                } catch (err) {
-                    console.warn('Cloud sync error. Data saved locally only.', err.message);
-                }
             } else {
-                console.log('%c📴 Offline – data saved locally only', 'color:#fbbf24;');
+                console.log('%cℹ No localStorage data, using defaults', 'color: #60a5fa;');
             }
         }
 
-        function updateLastKnownTimestamps() {
-            const categories = ['homeworks', 'dailyWorks', 'weeklyPlans', 'disciplineRecords'];
-            categories.forEach(cat => {
-                if (!Array.isArray(dataStore[cat])) return;
-                dataStore[cat].forEach(item => {
-                    const key = cat + '||' + (item.class || item.studentId || 'all') + '||' + (item
-                        ._id || '');
-                    if (item._createdAt && !lastKnownTimestamps[key]) {
-                        lastKnownTimestamps[key] = item._createdAt;
-                    }
-                });
-                // Also store the max timestamp per category+class
-                const byClass = {};
-                dataStore[cat].forEach(item => {
-                    const cls = item.class || item.studentId || 'all';
-                    if (!byClass[cls]) byClass[cls] = 0;
-                    if (item._createdAt && item._createdAt > byClass[cls]) byClass[cls] = item._createdAt;
-                });
-                Object.keys(byClass).forEach(cls => {
-                    lastKnownTimestamps[cat + '||' + cls] = byClass[cls];
-                });
-            });
-            localStorage.setItem(LAST_SYNC_KEY, JSON.stringify(lastKnownTimestamps));
-        }
-
-        function loadLastKnownTimestamps() {
-            const saved = localStorage.getItem(LAST_SYNC_KEY);
-            if (saved) {
-                try {
-                    lastKnownTimestamps = JSON.parse(saved);
-                } catch (e) {
-                    lastKnownTimestamps = {};
-                }
-            }
-        }
-
-        // ---------- CREDENTIAL MANAGEMENT ----------
-        function saveCredentials(id, password) {
-            localStorage.setItem(CREDENTIALS_KEY, JSON.stringify({ id, password }));
-        }
-
-        function getSavedCredentials() {
-            const saved = localStorage.getItem(CREDENTIALS_KEY);
-            if (saved) {
-                try {
-                    return JSON.parse(saved);
-                } catch (e) {
-                    return null;
-                }
-            }
-            return null;
-        }
-
-        function clearSavedCredentials() {
-            localStorage.removeItem(CREDENTIALS_KEY);
-        }
-
-        // ---------- AUTO-LOGIN ----------
-        async function attemptAutoLogin() {
-            const creds = getSavedCredentials();
-            if (!creds || !creds.id || !creds.password) return false;
-
-            // Pre-fill login fields
-            document.getElementById('loginId').value = creds.id;
-            document.getElementById('loginPassword').value = creds.password;
-
-            // Try fetching latest data first (if online)
-            if (isOnline) {
-                try {
-                    const remoteData = await fetchFromJSONBin();
-                    if (remoteData && typeof remoteData === 'object') {
-                        dataStore.users = remoteData.users || [];
-                        dataStore.classes = remoteData.classes || [];
-                        dataStore.homeworks = remoteData.homeworks || [];
-                        dataStore.dailyWorks = remoteData.dailyWorks || [];
-                        dataStore.weeklyPlans = remoteData.weeklyPlans || [];
-                        dataStore.disciplineRecords = remoteData.disciplineRecords || [];
-                        ensureIdsAndTimestamps();
-                        saveLocalOnly();
-                        console.log('%c✔ Latest data fetched for auto-login', 'color: #4ade80;');
-                    }
-                } catch (e) {
-                    // Use local data if fetch fails
-                    loadLocal();
-                    console.log('%c⚠ Using local data for auto-login', 'color: #fbbf24;');
-                }
-            } else {
-                loadLocal();
-            }
-
-            // Verify credentials against current data
-            const user = dataStore.users.find(u => u.id === creds.id && u.password === creds.password);
-            if (!user) {
-                // Credentials no longer valid
-                clearSavedCredentials();
-                document.getElementById('loginPassword').value = '';
-                return false;
-            }
-
-            // Success – log in
-            currentUser = user;
-            document.getElementById('loginScreen').classList.add('hidden');
-            document.getElementById('appScreen').classList.remove('hidden');
-            initDashboard();
-            initLucide();
-            requestNotificationPermission();
-            startPolling();
-            updateOnlineStatus();
-            console.log('%c✔ Auto-logged in as ' + user.name, 'color: #4ade80;');
-            return true;
+        function initLucide() {
+            lucide.createIcons();
         }
 
         // ---------- LOGIN ----------
@@ -727,28 +499,6 @@
                 errorEl.classList.remove('hidden');
                 return;
             }
-
-            // If online, try fetching fresh data before login
-            if (isOnline) {
-                try {
-                    const remoteData = await fetchFromJSONBin();
-                    if (remoteData && typeof remoteData === 'object') {
-                        dataStore.users = remoteData.users || [];
-                        dataStore.classes = remoteData.classes || [];
-                        dataStore.homeworks = remoteData.homeworks || [];
-                        dataStore.dailyWorks = remoteData.dailyWorks || [];
-                        dataStore.weeklyPlans = remoteData.weeklyPlans || [];
-                        dataStore.disciplineRecords = remoteData.disciplineRecords || [];
-                        ensureIdsAndTimestamps();
-                        saveLocalOnly();
-                    }
-                } catch (e) {
-                    loadLocal();
-                }
-            } else {
-                loadLocal();
-            }
-
             const user = dataStore.users.find(u => u.id === id && u.password === password);
             if (!user) {
                 errorEl.textContent = 'Invalid ID or password.';
@@ -756,16 +506,11 @@
                 return;
             }
             currentUser = user;
-            // Save credentials for future auto-login
-            saveCredentials(id, password);
             document.getElementById('loginScreen').classList.add('hidden');
             document.getElementById('appScreen').classList.remove('hidden');
             initDashboard();
             initLucide();
-            requestNotificationPermission();
-            startPolling();
-            updateOnlineStatus();
-            console.log('%c✔ Logged in as ' + user.name, 'color: #4ade80;');
+            console.log(`%c✔ Logged in as ${user.name}`, 'color: #4ade80;');
         }
 
         // ---------- DASHBOARD SETUP ----------
@@ -788,155 +533,13 @@
             });
             if (!localStorage.getItem('theme')) localStorage.setItem('theme', 'dark');
             applyTheme(localStorage.getItem('theme'));
-        }
-
-        // ---------- POLLING FOR LIVE UPDATES ----------
-        function startPolling() {
-            stopPolling();
-            loadLastKnownTimestamps();
-            updateLastKnownTimestamps();
-            // Initial check
-            if (isOnline) checkForUpdates(false);
-            // Set up interval
-            pollingInterval = setInterval(() => {
-                const interval = document.hidden ? POLL_INTERVAL_HIDDEN : POLL_INTERVAL_VISIBLE;
-                if (isOnline) checkForUpdates(false);
-            }, POLL_INTERVAL_VISIBLE);
-            // Adjust interval on visibility change
-            document.addEventListener('visibilitychange', onVisibilityChange);
-            console.log('%c🔄 Live polling started', 'color:#60a5fa;');
-        }
-
-        function stopPolling() {
-            if (pollingInterval) {
-                clearInterval(pollingInterval);
-                pollingInterval = null;
-            }
-            document.removeEventListener('visibilitychange', onVisibilityChange);
-        }
-
-        function onVisibilityChange() {
-            stopPolling();
-            if (currentUser) startPolling();
-        }
-
-        async function checkForUpdates(silent = false) {
-            if (!isOnline || !currentUser) return;
-            try {
-                const remoteData = await fetchFromJSONBin();
-                if (!remoteData || typeof remoteData !== 'object') return;
-                const newItems = detectNewItems(remoteData);
-                if (newItems.length > 0) {
-                    // Update dataStore with remote data
-                    dataStore.users = remoteData.users || dataStore.users;
-                    dataStore.classes = remoteData.classes || dataStore.classes;
-                    dataStore.homeworks = remoteData.homeworks || dataStore.homeworks;
-                    dataStore.dailyWorks = remoteData.dailyWorks || dataStore.dailyWorks;
-                    dataStore.weeklyPlans = remoteData.weeklyPlans || dataStore.weeklyPlans;
-                    dataStore.disciplineRecords = remoteData.disciplineRecords || dataStore.disciplineRecords;
-                    ensureIdsAndTimestamps();
-                    saveLocalOnly();
-
-                    // Filter notifications relevant to current user
-                    const userClass = currentUser.class || '';
-                    const relevantItems = newItems.filter(item => {
-                        // Skip items created by this user (teacher who made the change)
-                        if (lastChangeMadeByMe && item._createdAt && Math.abs(item._createdAt -
-                                lastChangeMadeByMe) < 5000) {
-                            return false;
-                        }
-                        // For students, only notify if item is for their class
-                        if (currentUser.role === 'student') {
-                            const itemClass = item.class || '';
-                            return itemClass === userClass;
-                        }
-                        // For teachers, notify about all changes they didn't make
-                        return currentUser.role === 'teacher';
-                    });
-
-                    if (relevantItems.length > 0 && !silent) {
-                        const item = relevantItems[0];
-                        let title = 'New Update';
-                        let body = 'New content has been added.';
-                        if (item.type === 'homework') {
-                            title = '📚 New Homework';
-                            body = `${item.title || 'Homework'} – ${item.class || ''}`;
-                        } else if (item.type === 'dailyWork') {
-                            title = '📅 New Daily Work';
-                            body = `${item.title || 'Daily Work'} – ${item.class || ''}`;
-                        } else if (item.type === 'weeklyPlan') {
-                            title = '📋 New Weekly Plan';
-                            body = `${item.week || 'Plan'} – ${item.class || ''}`;
-                        } else if (item.type === 'discipline') {
-                            title = '⚠ New Discipline Record';
-                            body = `${item.note || 'Record'} – ${item.date || ''}`;
-                        }
-                        if (relevantItems.length > 1) {
-                            body += ` (+${relevantItems.length - 1} more)`;
-                        }
-                        notifyUser(title, body);
-                    }
-
-                    // Refresh current page if new items are relevant
-                    if (newItems.some(item => {
-                            if (currentUser.role === 'student') {
-                                const itemClass = item.class || '';
-                                return itemClass === (currentUser.class || '');
-                            }
-                            return true;
-                        }) && currentPage && !silent) {
-                        // Re-render current page
-                        navigateTo(currentPage);
-                    }
-
-                    lastChangeMadeByMe = null;
-                }
-            } catch (e) {
-                // Silent fail – will retry on next poll
-            }
-        }
-
-        function detectNewItems(remoteData) {
-            const newItems = [];
-            const categories = [
-                { key: 'homeworks', type: 'homework', classField: 'class', titleField: 'title' },
-                { key: 'dailyWorks', type: 'dailyWork', classField: 'class', titleField: 'title' },
-                { key: 'weeklyPlans', type: 'weeklyPlan', classField: 'class', titleField: 'week' },
-                { key: 'disciplineRecords', type: 'discipline', classField: 'studentId', titleField: 'note' },
-            ];
-
-            categories.forEach(cat => {
-                const remoteItems = (remoteData[cat.key] || []);
-                const localItems = (dataStore[cat.key] || []);
-                const localIds = new Set(localItems.map(item => item._id).filter(Boolean));
-                remoteItems.forEach(item => {
-                    if (!item._id) item._id = generateId();
-                    if (!localIds.has(item._id)) {
-                        if (!item._createdAt) item._createdAt = Date.now();
-                        const cls = item[cat.classField] || 'all';
-                        const lastTs = lastKnownTimestamps[cat.key + '||' + cls] || 0;
-                        if (item._createdAt > lastTs) {
-                            newItems.push({
-                                type: cat.type,
-                                title: item[cat.titleField] || '',
-                                class: item[cat.classField] || '',
-                                note: item.note || '',
-                                week: item.week || '',
-                                date: item.date || '',
-                                _createdAt: item._createdAt,
-                                _id: item._id,
-                            });
-                        }
-                    }
-                });
-            });
-
-            return newItems;
+            const initDiv = document.getElementById('userInitial');
+            initDiv.style.width = '2rem';
+            initDiv.style.height = '2rem';
         }
 
         // ---------- NAVIGATION HANDLER ----------
         function navigateTo(page) {
-            currentPage = page;
             document.querySelectorAll('#sidebarNav a').forEach(a => a.classList.remove('active'));
             const activeLink = document.querySelector(`#sidebarNav a[data-page="${page}"]`);
             if (activeLink) activeLink.classList.add('active');
@@ -979,7 +582,7 @@
         function renderHomework() {
             const classFilter = currentUser.role === 'teacher' ? 'all' : getStudentClass();
             const items = dataStore.homeworks.filter(hw => classFilter === 'all' || hw.class === classFilter);
-            const html = items.length ? items.map((hw) => `
+            const html = items.length ? items.map((hw, i) => `
         <div class="card p-4 flex justify-between items-start">
           <div>
             <h3 class="font-semibold">${hw.title}</h3>
@@ -987,7 +590,7 @@
             <span class="text-xs text-[var(--text-secondary)]">Due: ${hw.dueDate || '-'}</span>
             ${currentUser.role === 'teacher' ? `<span class="text-xs border border-[var(--border)] px-2 py-1 rounded ml-2">${hw.class}</span>` : ''}
           </div>
-          ${currentUser.role === 'teacher' ? `<button onclick="deleteHomeworkById('${hw._id}')" class="text-red-400 hover:text-red-300"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : ''}
+          ${currentUser.role === 'teacher' ? `<button onclick="deleteHomework(${i})" class="text-red-400 hover:text-red-300"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : ''}
         </div>
       `).join('') : '<p class="text-[var(--text-secondary)]">No homework.</p>';
             return `<div class="space-y-6 animate-fade-in"><h2 class="text-2xl font-bold flex items-center gap-2"><i data-lucide="book-open" class="w-6 h-6"></i> Homework</h2><div class="grid gap-4">${html}</div></div>`;
@@ -996,7 +599,7 @@
         function renderDailyWork() {
             const classFilter = currentUser.role === 'teacher' ? 'all' : getStudentClass();
             const items = dataStore.dailyWorks.filter(dw => classFilter === 'all' || dw.class === classFilter);
-            const html = items.length ? items.map((dw) => `
+            const html = items.length ? items.map((dw, i) => `
         <div class="card p-4 flex justify-between">
           <div>
             <h3 class="font-semibold">${dw.title}</h3>
@@ -1004,7 +607,7 @@
             <span class="text-xs text-[var(--text-secondary)]">${dw.date || '-'}</span>
             ${currentUser.role === 'teacher' ? `<span class="text-xs border border-[var(--border)] px-2 py-1 rounded ml-2">${dw.class}</span>` : ''}
           </div>
-          ${currentUser.role === 'teacher' ? `<button onclick="deleteDailyWorkById('${dw._id}')" class="text-red-400 hover:text-red-300"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : ''}
+          ${currentUser.role === 'teacher' ? `<button onclick="deleteDailyWork(${i})" class="text-red-400 hover:text-red-300"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : ''}
         </div>
       `).join('') : '<p class="text-[var(--text-secondary)]">No daily work.</p>';
             return `<div class="space-y-6 animate-fade-in"><h2 class="text-2xl font-bold flex items-center gap-2"><i data-lucide="calendar" class="w-6 h-6"></i> Daily Work</h2><div class="grid gap-4">${html}</div></div>`;
@@ -1013,14 +616,14 @@
         function renderWeeklyPlan() {
             const classFilter = currentUser.role === 'teacher' ? 'all' : getStudentClass();
             const items = dataStore.weeklyPlans.filter(wp => classFilter === 'all' || wp.class === classFilter);
-            const html = items.length ? items.map((wp) => `
+            const html = items.length ? items.map((wp, i) => `
         <div class="card p-4 flex justify-between">
           <div>
             <h3 class="font-semibold">${wp.week}</h3>
             <p class="text-sm text-[var(--text-secondary)]">${wp.plan}</p>
             ${currentUser.role === 'teacher' ? `<span class="text-xs border border-[var(--border)] px-2 py-1 rounded">${wp.class}</span>` : ''}
           </div>
-          ${currentUser.role === 'teacher' ? `<button onclick="deleteWeeklyPlanById('${wp._id}')" class="text-red-400 hover:text-red-300"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : ''}
+          ${currentUser.role === 'teacher' ? `<button onclick="deleteWeeklyPlan(${i})" class="text-red-400 hover:text-red-300"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : ''}
         </div>
       `).join('') : '<p class="text-[var(--text-secondary)]">No weekly plan.</p>';
             return `<div class="space-y-6 animate-fade-in"><h2 class="text-2xl font-bold flex items-center gap-2"><i data-lucide="clipboard-list" class="w-6 h-6"></i> Weekly Plan</h2><div class="grid gap-4">${html}</div></div>`;
@@ -1033,7 +636,7 @@
             } else {
                 records = dataStore.disciplineRecords.filter(r => r.studentId === currentUser.id);
             }
-            const html = records.length ? records.map((r) => {
+            const html = records.length ? records.map((r, i) => {
                 const student = dataStore.users.find(u => u.id === r.studentId);
                 const studentName = student ? student.name : r.studentId;
                 return `
@@ -1044,44 +647,42 @@
                 ${r.date} ${currentUser.role === 'teacher' ? `· Student: ${studentName}` : ''}
               </div>
             </div>
-            ${currentUser.role === 'teacher' ? `<button onclick="deleteDisciplineById('${r._id}')" class="text-red-400 hover:text-red-300"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : ''}
+            ${currentUser.role === 'teacher' ? `<button onclick="deleteDiscipline(${i})" class="text-red-400 hover:text-red-300"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : ''}
           </div>
         `;
             }).join('') : '<p class="text-[var(--text-secondary)]">No discipline records.</p>';
             return `<div class="space-y-6 animate-fade-in"><h2 class="text-2xl font-bold flex items-center gap-2"><i data-lucide="shield-alert" class="w-6 h-6"></i> Discipline</h2><div class="grid gap-4">${html}</div></div>`;
         }
 
-        // ---------- DELETE FUNCTIONS (using IDs) ----------
-        async function deleteHomeworkById(id) {
+        async function deleteHomework(index) {
             if (await confirm('Delete this homework?')) {
-                dataStore.homeworks = dataStore.homeworks.filter(h => h._id !== id);
-                await saveData();
+                dataStore.homeworks.splice(index, 1);
+                await saveLocal();
                 navigateTo('homework');
             }
         }
-        async function deleteDailyWorkById(id) {
+        async function deleteDailyWork(index) {
             if (await confirm('Delete this daily work?')) {
-                dataStore.dailyWorks = dataStore.dailyWorks.filter(d => d._id !== id);
-                await saveData();
+                dataStore.dailyWorks.splice(index, 1);
+                await saveLocal();
                 navigateTo('daily-work');
             }
         }
-        async function deleteWeeklyPlanById(id) {
+        async function deleteWeeklyPlan(index) {
             if (await confirm('Delete this weekly plan?')) {
-                dataStore.weeklyPlans = dataStore.weeklyPlans.filter(w => w._id !== id);
-                await saveData();
+                dataStore.weeklyPlans.splice(index, 1);
+                await saveLocal();
                 navigateTo('weekly-plan');
             }
         }
-        async function deleteDisciplineById(id) {
+        async function deleteDiscipline(index) {
             if (await confirm('Delete this discipline record?')) {
-                dataStore.disciplineRecords = dataStore.disciplineRecords.filter(r => r._id !== id);
-                await saveData();
+                dataStore.disciplineRecords.splice(index, 1);
+                await saveLocal();
                 navigateTo('discipline');
             }
         }
 
-        // ---------- MANAGE CLASSES ----------
         function renderManageClasses() {
             const classes = dataStore.classes;
             const list = classes.map(c => `
@@ -1110,12 +711,12 @@
             const name = document.getElementById('newClassName').value.trim();
             if (!name || dataStore.classes.includes(name)) return;
             dataStore.classes.push(name);
-            await saveData();
+            await saveLocal();
             navigateTo('manage-classes');
         }
 
         async function deleteClass(className) {
-            if (!await confirm('Delete ' + className + '?')) return;
+            if (!await confirm(`Delete ${className}?`)) return;
             dataStore.classes = dataStore.classes.filter(c => c !== className);
             dataStore.homeworks = dataStore.homeworks.filter(h => h.class !== className);
             dataStore.dailyWorks = dataStore.dailyWorks.filter(d => d.class !== className);
@@ -1123,11 +724,10 @@
             dataStore.users.forEach(u => {
                 if (u.class === className) u.class = '';
             });
-            await saveData();
+            await saveLocal();
             navigateTo('manage-classes');
         }
 
-        // ---------- MANAGE STUDENTS ----------
         function renderManageStudents() {
             const students = dataStore.users.filter(u => u.role === 'student');
             const rows = students.map(s => `
@@ -1188,26 +788,24 @@
                 dob,
                 password,
                 role: 'student',
-                class: cls,
+                class: cls
             });
-            await saveData();
+            await saveLocal();
             navigateTo('manage-students');
-            console.log('%c✔ Student ' + name + ' added', 'color: #4ade80;');
+            console.log(`%c✔ Student ${name} added`, 'color: #4ade80;');
         }
 
         async function removeStudent(id) {
             if (!await confirm('Remove this student?')) return;
             dataStore.users = dataStore.users.filter(u => u.id !== id);
             dataStore.disciplineRecords = dataStore.disciplineRecords.filter(r => r.studentId !== id);
-            await saveData();
+            await saveLocal();
             navigateTo('manage-students');
         }
 
-        // ---------- MANAGE CONTENT ----------
         function renderManageContent() {
             const classOptions = dataStore.classes.map(c => `<option value="${c}">${c}</option>`).join('');
-            const studentOptions = dataStore.users.filter(u => u.role === 'student').map(s =>
-                `<option value="${s.id}">${s.name} (${s.id})</option>`).join('');
+            const studentOptions = dataStore.users.filter(u => u.role === 'student').map(s => `<option value="${s.id}">${s.name} (${s.id})</option>`).join('');
             return `
         <div class="space-y-8 animate-fade-in">
           <h2 class="text-2xl font-bold flex items-center gap-2"><i data-lucide="edit" class="w-6 h-6"></i> Manage Content</h2>
@@ -1281,17 +879,13 @@
             const due = document.getElementById('hwDue').value.trim();
             const cls = document.getElementById('hwClass').value;
             if (!title || !desc || !cls) return;
-            const newItem = {
-                _id: generateId(),
+            dataStore.homeworks.push({
                 title,
                 description: desc,
                 dueDate: due,
-                class: cls,
-                _createdAt: Date.now(),
-            };
-            dataStore.homeworks.push(newItem);
-            lastChangeMadeByMe = newItem._createdAt;
-            await saveData();
+                class: cls
+            });
+            await saveLocal();
             navigateTo('manage-content');
         }
 
@@ -1302,17 +896,13 @@
             const date = document.getElementById('dwDate').value.trim();
             const cls = document.getElementById('dwClass').value;
             if (!title || !desc || !cls) return;
-            const newItem = {
-                _id: generateId(),
+            dataStore.dailyWorks.push({
                 title,
                 description: desc,
                 date,
-                class: cls,
-                _createdAt: Date.now(),
-            };
-            dataStore.dailyWorks.push(newItem);
-            lastChangeMadeByMe = newItem._createdAt;
-            await saveData();
+                class: cls
+            });
+            await saveLocal();
             navigateTo('manage-content');
         }
 
@@ -1322,16 +912,12 @@
             const plan = document.getElementById('wpPlan').value.trim();
             const cls = document.getElementById('wpClass').value;
             if (!week || !plan || !cls) return;
-            const newItem = {
-                _id: generateId(),
+            dataStore.weeklyPlans.push({
                 week,
                 plan,
-                class: cls,
-                _createdAt: Date.now(),
-            };
-            dataStore.weeklyPlans.push(newItem);
-            lastChangeMadeByMe = newItem._createdAt;
-            await saveData();
+                class: cls
+            });
+            await saveLocal();
             navigateTo('manage-content');
         }
 
@@ -1341,28 +927,23 @@
             const note = document.getElementById('discNote').value.trim();
             const date = document.getElementById('discDate').value.trim();
             if (!studentId || !note || !date) return;
-            const newItem = {
-                _id: generateId(),
+            dataStore.disciplineRecords.push({
                 studentId,
                 note,
-                date,
-                _createdAt: Date.now(),
-            };
-            dataStore.disciplineRecords.push(newItem);
-            lastChangeMadeByMe = newItem._createdAt;
-            await saveData();
+                date
+            });
+            await saveLocal();
             navigateTo('manage-content');
         }
 
         async function clearContent(key) {
-            if (await confirm('Clear all ' + key + '?')) {
+            if (await confirm(`Clear all ${key}?`)) {
                 dataStore[key] = [];
-                await saveData();
+                await saveLocal();
                 navigateTo('manage-content');
             }
         }
 
-        // ---------- CHANGE PASSWORD ----------
         function renderChangePassword() {
             return `
         <div class="space-y-6 animate-fade-in max-w-md">
@@ -1397,18 +978,12 @@
             const user = dataStore.users.find(u => u.id === currentUser.id);
             if (user) user.password = newPass;
             currentUser.password = newPass;
-            // Update saved credentials with new password
-            const creds = getSavedCredentials();
-            if (creds && creds.id === currentUser.id) {
-                saveCredentials(currentUser.id, newPass);
-            }
-            await saveData();
+            await saveLocal();
             msg.textContent = 'Password updated.';
             msg.className = 'text-sm text-green-400';
             msg.classList.remove('hidden');
         }
 
-        // ---------- THEME ----------
         function toggleTheme() {
             const current = document.body.classList.contains('light') ? 'light' : 'dark';
             const next = current === 'dark' ? 'light' : 'dark';
@@ -1427,120 +1002,52 @@
             initLucide();
         }
 
-        // ---------- LOGOUT ----------
         function logout() {
-            clearSavedCredentials();
-            stopPolling();
             currentUser = null;
-            currentPage = null;
-            lastChangeMadeByMe = null;
             document.getElementById('appScreen').classList.add('hidden');
             document.getElementById('loginScreen').classList.remove('hidden');
+            document.getElementById('loginId').value = '';
             document.getElementById('loginPassword').value = '';
             document.getElementById('loginError').classList.add('hidden');
             closeSidebar();
-            dismissToast();
-            console.log('%c👋 Logged out', 'color:#fbbf24;');
         }
 
-        // ---------- SIDEBAR (FIXED) ----------
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('sidebarOverlay');
+            sidebar.classList.toggle('collapsed');
             if (window.innerWidth <= 768) {
-                // Mobile: only use 'open' class, clean up 'collapsed' if present
-                sidebar.classList.remove('collapsed');
                 sidebar.classList.toggle('open');
-                overlay.classList.toggle('show');
-            } else {
-                // Desktop: only use 'collapsed' class, clean up 'open' if present
-                sidebar.classList.remove('open');
-                overlay.classList.remove('show');
-                sidebar.classList.toggle('collapsed');
+                document.getElementById('sidebarOverlay').classList.toggle('show');
             }
         }
 
         function closeSidebar() {
             const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('sidebarOverlay');
             sidebar.classList.remove('open');
-            sidebar.classList.remove('collapsed');
-            overlay.classList.remove('show');
-        }
-
-        // ---------- LUCIDE ICONS ----------
-        function initLucide() {
-            lucide.createIcons();
+            document.getElementById('sidebarOverlay').classList.remove('show');
         }
 
         // ---------- INIT ----------
         window.addEventListener('DOMContentLoaded', async () => {
             loadLocal();
-            loadLastKnownTimestamps();
-            ensureIdsAndTimestamps();
-            updateOnlineStatus();
+            await fetchInitialData();
 
-            // Try fetching latest data if online
-            if (isOnline) {
-                try {
-                    const remoteData = await fetchFromJSONBin();
-                    if (remoteData && typeof remoteData === 'object') {
-                        dataStore.users = remoteData.users || dataStore.users;
-                        dataStore.classes = remoteData.classes || dataStore.classes;
-                        dataStore.homeworks = remoteData.homeworks || dataStore.homeworks;
-                        dataStore.dailyWorks = remoteData.dailyWorks || dataStore.dailyWorks;
-                        dataStore.weeklyPlans = remoteData.weeklyPlans || dataStore.weeklyPlans;
-                        dataStore.disciplineRecords = remoteData.disciplineRecords || dataStore
-                            .disciplineRecords;
-                        ensureIdsAndTimestamps();
-                        saveLocalOnly();
-                        console.log('%c✔ Latest data fetched on startup', 'color: #4ade80;');
-                    }
-                } catch (e) {
-                    console.log('%c⚠ Using local data (offline/error)', 'color: #fbbf24;');
-                }
+            // If no users exist at all, seed with defaults
+            if (dataStore.users.length === 0) {
+                console.log('%cℹ No users found, reseeding with defaults', 'color: #60a5fa;');
+                dataStore = {
+                    ...DEFAULT_LMS_DATA
+                };
+                await saveLocal();
             }
 
-            // Initialize default classes if empty
+            // Ensure at least one class exists
             if (!dataStore.classes.length) {
                 dataStore.classes.push('Grade 4');
-                await saveData();
-            }
-
-            // Attempt auto-login if credentials are saved
-            const autoLoggedIn = await attemptAutoLogin();
-
-            if (!autoLoggedIn) {
-                // Show login screen with pre-filled credentials if available
-                const creds = getSavedCredentials();
-                if (creds && creds.id) {
-                    document.getElementById('loginId').value = creds.id;
-                    document.getElementById('loginPassword').value = creds.password || '';
-                }
+                await saveLocal();
             }
 
             initLucide();
-        });
-
-        // Handle page unload – save data
-        window.addEventListener('beforeunload', () => {
-            saveLocalOnly();
-        });
-
-        // Handle resize – clean up sidebar classes on breakpoint change
-        window.addEventListener('resize', () => {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('sidebarOverlay');
-            if (window.innerWidth > 768) {
-                // Moving to desktop: remove mobile classes
-                sidebar.classList.remove('open');
-                overlay.classList.remove('show');
-            } else {
-                // Moving to mobile: remove desktop collapsed class if sidebar should be hidden
-                if (!sidebar.classList.contains('open')) {
-                    sidebar.classList.remove('collapsed');
-                }
-            }
         });
     </script>
     <script>
