@@ -1,4 +1,6 @@
-const CACHE_NAME = 'ibraedu-v6'; // Bumped version to evict old layout/session bug caches
+const CACHE_NAME = 'ibraedu-v7'; // Bumped version to evict the old corrupted cache
+
+// Core structural assets to cache on install
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -17,7 +19,7 @@ self.addEventListener('install', event => {
   self.skipWaiting();
 });
 
-// Activate and purge old caches
+// Activate and purge old caches immediately
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys => Promise.all(
@@ -32,12 +34,12 @@ self.addEventListener('fetch', event => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // CORRECTED: Exclude Supabase live database traffic from being hijacked by the cache
+  // 1. Exclude Supabase live database traffic from being hijacked by the cache
   if (url.hostname.includes('supabase.co')) {
     return; // Let the browser handle live database updates naturally
   }
 
-  // UPDATED: Added jsdelivr.net to ensure the Supabase client library can be cached for offline use
+  // 2. Filter external CDN assets
   const isExternalCDN = 
     url.hostname.includes('tailwindcss.com') || 
     url.hostname.includes('unpkg.com') || 
@@ -46,7 +48,7 @@ self.addEventListener('fetch', event => {
     url.hostname.includes('jsdelivr.net');
 
   if (isExternalCDN) {
-    // Strategy: Network First, Fallback to Cache
+    // Strategy for CDNs: Network First, Fallback to Cache
     event.respondWith(
       fetch(request)
         .then(response => {
@@ -61,19 +63,33 @@ self.addEventListener('fetch', event => {
         })
     );
   } else {
-    // Strategy for local files: Cache First, Fallback to Network
+    // Strategy for local paths / SPA routing: Cache First, Fallback to Network, Fallback to index.html
     event.respondWith(
       caches.match(request).then(cachedResponse => {
         if (cachedResponse) {
           return cachedResponse;
         }
-        return fetch(request).then(networkResponse => {
-          if (networkResponse && networkResponse.status === 200) {
-            const clone = networkResponse.clone();
-            caches.open(CACHE_NAME).then(cache => cache.put(request, clone));
-          }
-          return networkResponse;
-        });
+
+        return fetch(request)
+          .then(networkResponse => {
+            // Only cache valid standard file responses (like images, scripts, manifest)
+            if (networkResponse && networkResponse.status === 200) {
+              const clone = networkResponse.clone();
+              caches.open(CACHE_NAME).then(cache => cache.put(request, clone));
+            }
+            return networkResponse;
+          })
+          .catch((err) => {
+            // CRITICAL SPA FALLBACK:
+            // If it's a browser navigation request (e.g., typing /classes or /login) 
+            // and the network fails/doesn't find a direct file, serve the cached SPA shell index.html.
+            if (request.mode === 'navigate') {
+              return caches.match('./index.html');
+            }
+            
+            // Otherwise throw the error so the browser knows the asset is genuinely missing
+            throw err;
+          });
       })
     );
   }
