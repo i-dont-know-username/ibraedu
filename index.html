@@ -316,14 +316,15 @@
             '/password': { page: 'change-password', requiresLogin: true, teacherOnly: true }
         };
 
-        function handleRoute() {
+function handleRoute() {
             const path = window.location.pathname;
             // Root redirection: logged in -> default page, else -> /login
             if (path === '/') {
                 if (currentUser) {
                     const defaultPage = currentUser.role === 'teacher' ? '/classes' : '/homework';
                     history.replaceState(null, '', defaultPage);
-                    handleRoute();  // re‑enter with new path
+                    // FIX: Stop recursive internal logic loop. Use a clean timeout break to load fresh state paths.
+                    setTimeout(handleRoute, 0);
                 } else {
                     history.replaceState(null, '', '/login');
                     renderLoginScreen();
@@ -354,7 +355,8 @@
             if (path === '/login' && currentUser) {
                 const defaultPage = currentUser.role === 'teacher' ? '/classes' : '/homework';
                 history.replaceState(null, '', defaultPage);
-                handleRoute();
+                // FIX: Prevent maximum call stack browser crash loops.
+                setTimeout(handleRoute, 0);
                 return;
             }
 
@@ -400,7 +402,7 @@
             });
         });
 
-        async function attemptLogin() {
+async function attemptLogin() {
             const id = document.getElementById('loginId').value.trim();
             const password = document.getElementById('loginPassword').value;
             const errorEl = document.getElementById('loginError');
@@ -425,8 +427,12 @@
             localStorage.setItem('IbraEdu_LoggedInUserId', user.id);
             requestNotificationPermission();
             startPolling();
-            // Force re‑route: if on /login, handleRoute will redirect to default page
-            handleRoute();
+            
+            // FIX: Instead of calling handleRoute() directly while stuck on the /login path, 
+            // use your router's safe navigate feature to send them to their explicit landing page.
+            const defaultPage = user.role === 'teacher' ? '/classes' : '/homework';
+            routerNavigate(defaultPage, true);
+            
             console.log(`%c✔ Logged in as ${user.name}`, 'color: #4ade80;');
         }
 
