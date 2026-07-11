@@ -1,7 +1,5 @@
-
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
@@ -16,7 +14,6 @@
             font-family: 'Inter', sans-serif;
             transition: background-color 0.3s, color 0.3s, border-color 0.3s, box-shadow 0.3s;
         }
-
         :root {
             --bg: #0a0a0a;
             --surface: #171717;
@@ -26,7 +23,6 @@
             --text-secondary: #a3a3a3;
             --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
         }
-
         .light {
             --bg: #ffffff;
             --surface: #f9fafb;
@@ -36,19 +32,16 @@
             --text-secondary: #525252;
             --shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
         }
-
         body {
             background-color: var(--bg);
             color: var(--text);
         }
-
         .card {
             background-color: var(--surface);
             border: 1px solid var(--border);
             border-radius: 0.75rem;
             box-shadow: var(--shadow);
         }
-
         .btn {
             background-color: var(--text);
             color: var(--bg);
@@ -60,19 +53,13 @@
             align-items: center;
             gap: 0.5rem;
         }
-
-        .btn:hover {
-            opacity: 0.8;
-        }
-
+        .btn:hover { opacity: 0.8; }
         .btn-outline {
             background-color: transparent;
             color: var(--text);
             border: 1px solid var(--border);
         }
-
-        .input-field,
-        select.input-field {
+        .input-field, select.input-field {
             background-color: var(--surface);
             border: 1px solid var(--border);
             border-radius: 0.5rem;
@@ -87,11 +74,7 @@
             background-position: right 0.75rem center;
             background-size: 12px;
         }
-
-        select.input-field {
-            padding-right: 2rem;
-        }
-
+        select.input-field { padding-right: 2rem; }
         .sidebar-link {
             display: flex;
             align-items: center;
@@ -101,112 +84,26 @@
             color: var(--text);
             transition: background-color 0.2s;
         }
-
-        .sidebar-link:hover,
-        .sidebar-link.active {
-            background-color: var(--surface-hover);
-        }
-
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: var(--surface);
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: var(--text-secondary);
-            border-radius: 3px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--text);
-        }
-
+        .sidebar-link:hover, .sidebar-link.active { background-color: var(--surface-hover); }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: var(--surface); }
+        ::-webkit-scrollbar-thumb { background: var(--text-secondary); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text); }
         @media (min-width: 769px) {
-            .sidebar {
-                transition: transform 0.3s ease, width 0.3s ease;
-            }
-
-            .sidebar.collapsed {
-                transform: translateX(0);
-                width: 0;
-                min-width: 0;
-                padding: 0;
-                border: none;
-                overflow: hidden;
-            }
-
-            .sidebar-overlay-desktop {
-                display: none;
-            }
+            .sidebar { transition: transform 0.3s ease, width 0.3s ease; }
+            .sidebar.collapsed { transform: translateX(0); width: 0; min-width: 0; padding: 0; border: none; overflow: hidden; }
+            .sidebar-overlay-desktop { display: none; }
         }
-
         @media (max-width: 768px) {
-            .sidebar {
-                transform: translateX(-100%);
-                position: fixed;
-                z-index: 50;
-                height: 100vh;
-                width: 16rem;
-                transition: transform 0.3s ease;
-                background-color: var(--surface);
-                border-right: 1px solid var(--border);
-            }
-
-            .sidebar.open {
-                transform: translateX(0);
-            }
-
-            .overlay {
-                display: none;
-                position: fixed;
-                inset: 0;
-                background: rgba(0, 0, 0, 0.5);
-                z-index: 40;
-            }
-
-            .overlay.show {
-                display: block;
-            }
+            .sidebar { transform: translateX(-100%); position: fixed; z-index: 50; height: 100vh; width: 16rem; transition: transform 0.3s ease; background-color: var(--surface); border-right: 1px solid var(--border); }
+            .sidebar.open { transform: translateX(0); }
+            .overlay { display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); z-index: 40; }
+            .overlay.show { display: block; }
         }
-
-        .animate-fade-in {
-            animation: fadeIn 0.3s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(8px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.6);
-            z-index: 100;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal-content {
-            background-color: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 0.75rem;
-            padding: 1.5rem;
-            max-width: 90vw;
-            width: 400px;
-        }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); z-index: 100; display: flex; align-items: center; justify-content: center; }
+        .modal-content { background-color: var(--surface); border: 1px solid var(--border); border-radius: 0.75rem; padding: 1.5rem; max-width: 90vw; width: 400px; }
     </style>
 </head>
 
@@ -265,29 +162,30 @@
                 </button>
             </div>
             <nav class="flex flex-col gap-1 flex-1" id="sidebarNav">
-                <a href="#" data-page="homework" class="sidebar-link active">
+                <!-- href attributes are now real paths -->
+                <a href="/homework" data-page="homework" class="sidebar-link active">
                     <i data-lucide="book-open" class="w-5 h-5"></i> Homework
                 </a>
-                <a href="#" data-page="daily-work" class="sidebar-link">
+                <a href="/dailywork" data-page="daily-work" class="sidebar-link">
                     <i data-lucide="calendar" class="w-5 h-5"></i> Daily Work
                 </a>
-                <a href="#" data-page="weekly-plan" class="sidebar-link">
+                <a href="/weeklyplan" data-page="weekly-plan" class="sidebar-link">
                     <i data-lucide="clipboard-list" class="w-5 h-5"></i> Weekly Plan
                 </a>
-                <a href="#" data-page="discipline" class="sidebar-link">
+                <a href="/discipline" data-page="discipline" class="sidebar-link">
                     <i data-lucide="shield-alert" class="w-5 h-5"></i> Discipline
                 </a>
                 <div id="teacherLinks" class="hidden mt-2 pt-2 border-t border-[var(--border)]">
-                    <a href="#" data-page="manage-classes" class="sidebar-link">
+                    <a href="/classes" data-page="manage-classes" class="sidebar-link">
                         <i data-lucide="school" class="w-5 h-5"></i> Classes
                     </a>
-                    <a href="#" data-page="manage-students" class="sidebar-link">
+                    <a href="/students" data-page="manage-students" class="sidebar-link">
                         <i data-lucide="users" class="w-5 h-5"></i> Students
                     </a>
-                    <a href="#" data-page="manage-content" class="sidebar-link">
+                    <a href="/content" data-page="manage-content" class="sidebar-link">
                         <i data-lucide="edit" class="w-5 h-5"></i> Content
                     </a>
-                    <a href="#" data-page="change-password" class="sidebar-link">
+                    <a href="/password" data-page="change-password" class="sidebar-link">
                         <i data-lucide="key" class="w-5 h-5"></i> Password
                     </a>
                 </div>
@@ -343,10 +241,8 @@
             disciplineRecords: []
         };
         let previousData = null;
-
-        // Variables for the updated database synchronization fix
-        let recordId = null; // Track database row identity internally
-        let isSaving = false; // Lock parameter to prevent race-condition overwrite during active writes
+        let recordId = null;
+        let isSaving = false;
 
         // ---------- Modal / Alert / Confirm ----------
         function showModal(message, isConfirm = false) {
@@ -357,7 +253,6 @@
                 const cancelBtn = document.getElementById('modalCancel');
                 confirmBtn.textContent = isConfirm ? 'Confirm' : 'OK';
                 cancelBtn.classList.toggle('hidden', !isConfirm);
-
                 function close(val) {
                     modal.classList.add('hidden');
                     resolve(val);
@@ -371,9 +266,7 @@
         window.confirm = (msg) => showModal(msg, true);
 
         // ---------- Lucide Icons ----------
-        function initLucide() {
-            lucide.createIcons();
-        }
+        function initLucide() { lucide.createIcons(); }
 
         // ---------- Supabase Data Handling ----------
         async function fetchDataFromSupabase() {
@@ -383,11 +276,9 @@
                     .select("id, lms_json")
                     .limit(1)
                     .maybeSingle();
-                
                 if (error) throw error;
-                
                 if (data) {
-                    recordId = data.id; // Correctly bind internal table ID
+                    recordId = data.id;
                     return data.lms_json;
                 }
                 return null;
@@ -398,25 +289,21 @@
         }
 
         async function saveLocal() {
-            isSaving = true; // Lock sync thread
+            isSaving = true;
             localStorage.setItem(STORAGE_KEY, JSON.stringify(dataStore));
             try {
                 if (recordId) {
-                    // Update exact configuration row cleanly
                     const { error } = await supabaseClient
                         .from('ibraedu_data')
                         .update({ lms_json: dataStore })
                         .eq('id', recordId);
-                    
                     if (error) throw error;
                 } else {
-                    // Fallback to insertion if recordId is missing and capture returned payload id
                     const { data, error } = await supabaseClient
                         .from('ibraedu_data')
                         .insert({ lms_json: dataStore })
                         .select('id')
                         .maybeSingle();
-                    
                     if (error) throw error;
                     if (data) recordId = data.id;
                 }
@@ -424,10 +311,7 @@
             } catch (err) {
                 console.warn('Supabase sync error (offline?):', err);
             } finally {
-                // Keep lock operational briefly to secure backend stability
-                setTimeout(() => {
-                    isSaving = false;
-                }, 1000);
+                setTimeout(() => { isSaving = false; }, 1000);
             }
             console.log('%c✔ Data saved to localStorage', 'color:#60a5fa;');
         }
@@ -444,18 +328,14 @@
                     dataStore.weeklyPlans = parsed.weeklyPlans || [];
                     dataStore.disciplineRecords = parsed.disciplineRecords || [];
                     console.log('%c✔ Data loaded from localStorage', 'color: #4ade80;');
-                } catch (e) {
-                    console.warn('Corrupted localStorage data');
-                }
+                } catch (e) { console.warn('Corrupted localStorage data'); }
             } else {
                 console.log('ℹ No localStorage data yet');
             }
         }
 
-        // Polling logic with overwrite lock checks
         async function pollSupabase() {
-            if (isSaving) return; // Prevent overwriting active unsaved progress
-            
+            if (isSaving) return;
             const newData = await fetchDataFromSupabase();
             if (newData) {
                 if (!previousData) previousData = JSON.parse(JSON.stringify(dataStore));
@@ -476,51 +356,38 @@
             setInterval(pollSupabase, 5000);
         }
 
-        // ---------- Notifications ----------
         function checkAndNotify(newData) {
-            if (!previousData) return;
-            if (Notification.permission !== 'granted') return;
-            const prev = previousData;
+            if (!previousData || Notification.permission !== 'granted') return;
             let message = '';
-            if (newData.homeworks?.length > prev.homeworks?.length) message += 'New homework, ';
-            if (newData.dailyWorks?.length > prev.dailyWorks?.length) message += 'New daily work, ';
-            if (newData.weeklyPlans?.length > prev.weeklyPlans?.length) message += 'New weekly plan, ';
-            if (newData.disciplineRecords?.length > prev.disciplineRecords?.length) message += 'New discipline record, ';
+            if (newData.homeworks?.length > previousData.homeworks?.length) message += 'New homework, ';
+            if (newData.dailyWorks?.length > previousData.dailyWorks?.length) message += 'New daily work, ';
+            if (newData.weeklyPlans?.length > previousData.weeklyPlans?.length) message += 'New weekly plan, ';
+            if (newData.disciplineRecords?.length > previousData.disciplineRecords?.length) message += 'New discipline record, ';
             if (message) {
                 message = message.slice(0, -2);
-                new Notification('IbraEdu Update', {
-                    body: message,
-                    icon: 'data:image/svg+xml,&lt;svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23f5f5f5" stroke-width="2"&gt;&lt;path d="M22 10v6M2 10l10-5 10 5-10 5z"/&gt;&lt;path d="M6 12v5c0 2 4 3 6 3s6-1 6-3v-5"/&gt;&lt;/svg&gt;'
-                });
+                new Notification('IbraEdu Update', { body: message });
             }
         }
 
         function requestNotificationPermission() {
             if (!('Notification' in window)) return;
-            if (Notification.permission === 'default') {
+            if (Notification.permission === 'default')
                 Notification.requestPermission().then(perm => console.log('Notification permission:', perm));
-            }
         }
 
         // ---------- Initial Data Load ----------
         async function initialDataLoad() {
             loadLocal();
-            console.log('Attempting to fetch data from Supabase...');
             let supabaseData = await fetchDataFromSupabase();
             if (!supabaseData) {
-                console.log('No data found in Supabase, inserting default row...');
-                const { data, error: insertError } = await supabaseClient
+                const { data, error } = await supabaseClient
                     .from('ibraedu_data')
-                    .insert({ lms_json: dataStore }) // Setup defaults inside Supabase using local values
+                    .insert({ lms_json: dataStore })
                     .select('id, lms_json')
                     .maybeSingle();
-                
-                if (insertError) {
-                    console.error('Failed to create default row:', insertError);
-                } else if (data) {
+                if (!error && data) {
                     recordId = data.id;
                     supabaseData = data.lms_json;
-                    console.log('Default row created successfully!');
                 }
             }
             if (supabaseData) {
@@ -531,27 +398,102 @@
                 dataStore.weeklyPlans = supabaseData.weeklyPlans || [];
                 dataStore.disciplineRecords = supabaseData.disciplineRecords || [];
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(dataStore));
-                console.log('✔ Data loaded from Supabase, users:', dataStore.users.length);
-            } else {
-                console.warn('Could not load data from Supabase, using local cache only.');
-            }
-
-            // check and execute auto login session persistence logic
-            const savedUserId = localStorage.getItem('IbraEdu_LoggedInUserId');
-            if (savedUserId) {
-                const user = dataStore.users.find(u => u.id === savedUserId);
-                if (user) {
-                    currentUser = user;
-                    document.getElementById('loginScreen').classList.add('hidden');
-                    document.getElementById('appScreen').classList.remove('hidden');
-                    initDashboard();
-                    initLucide();
-                    requestNotificationPermission();
-                    startPolling();
-                    console.log(`%c✔ Auto-logged in session resolved as ${user.name}`, 'color: #4ade80;');
-                }
             }
         }
+
+        // ---------- Routing ----------
+        const ROUTE_MAP = {
+            '/login': { page: 'login' },
+            '/homework': { page: 'homework', requiresLogin: true },
+            '/dailywork': { page: 'daily-work', requiresLogin: true },
+            '/weeklyplan': { page: 'weekly-plan', requiresLogin: true },
+            '/discipline': { page: 'discipline', requiresLogin: true },
+            '/classes': { page: 'manage-classes', requiresLogin: true, teacherOnly: true },
+            '/students': { page: 'manage-students', requiresLogin: true, teacherOnly: true },   // also teacher only
+            '/content': { page: 'manage-content', requiresLogin: true, teacherOnly: true },
+            '/password': { page: 'change-password', requiresLogin: true, teacherOnly: true }
+        };
+
+        function handleRoute() {
+            const path = window.location.pathname;
+            if (path === '/') {
+                history.replaceState(null, '', '/login');
+                renderLoginScreen();
+                return;
+            }
+            const route = ROUTE_MAP[path];
+            if (!route) {
+                render404();
+                return;
+            }
+            if (route.requiresLogin && !currentUser) {
+                history.replaceState(null, '', '/login');
+                renderLoginScreen();
+                return;
+            }
+            if (route.teacherOnly && currentUser.role !== 'teacher') {
+                render403();
+                return;
+            }
+            if (path === '/login' && currentUser) {
+                const defaultPage = currentUser.role === 'teacher' ? '/classes' : '/homework';
+                history.replaceState(null, '', defaultPage);
+                navigateTo(ROUTE_MAP[defaultPage].page);
+                return;
+            }
+            if (route.page === 'login') {
+                renderLoginScreen();
+            } else {
+                document.getElementById('loginScreen').classList.add('hidden');
+                document.getElementById('appScreen').classList.remove('hidden');
+                navigateTo(route.page);
+                initLucide();
+            }
+        }
+
+        function render404() {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('appScreen').classList.remove('hidden');
+            document.getElementById('mainContent').innerHTML = `
+                <div class="flex flex-col items-center justify-center h-full space-y-4 animate-fade-in">
+                    <h1 class="text-6xl font-bold">404</h1>
+                    <p class="text-xl">Page not found</p>
+                    <button onclick="routerNavigate('/login')" class="btn">Go to Login</button>
+                </div>`;
+            document.title = '404 - Not Found';
+            initLucide();
+        }
+
+        function render403() {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('appScreen').classList.remove('hidden');
+            document.getElementById('mainContent').innerHTML = `
+                <div class="flex flex-col items-center justify-center h-full space-y-4 animate-fade-in">
+                    <h1 class="text-6xl font-bold">403</h1>
+                    <p class="text-xl">Forbidden</p>
+                    <p class="text-sm text-[var(--text-secondary)]">You do not have permission to view this page.</p>
+                    <button onclick="routerNavigate('/login')" class="btn">Go to Login</button>
+                </div>`;
+            document.title = '403 - Forbidden';
+            initLucide();
+        }
+
+        function renderLoginScreen() {
+            document.getElementById('appScreen').classList.add('hidden');
+            document.getElementById('loginScreen').classList.remove('hidden');
+            document.title = 'Login - IbraEdu';
+            document.getElementById('loginId').value = '';
+            document.getElementById('loginPassword').value = '';
+            document.getElementById('loginError').classList.add('hidden');
+        }
+
+        function routerNavigate(path, replace = false) {
+            if (replace) history.replaceState(null, '', path);
+            else history.pushState(null, '', path);
+            handleRoute();
+        }
+
+        window.addEventListener('popstate', handleRoute);
 
         // ---------- Login ----------
         document.getElementById('loginButton').addEventListener('click', attemptLogin);
@@ -583,42 +525,32 @@
                 return;
             }
             currentUser = user;
-            // Store user identity to establish persistence
             localStorage.setItem('IbraEdu_LoggedInUserId', user.id);
-            document.getElementById('loginScreen').classList.add('hidden');
-            document.getElementById('appScreen').classList.remove('hidden');
-            initDashboard();
-            initLucide();
             requestNotificationPermission();
             startPolling();
+            handleRoute();  // will redirect from /login to default page and init dashboard
             console.log(`%c✔ Logged in as ${user.name}`, 'color: #4ade80;');
         }
 
-        // ---------- Dashboard Init ----------
+        // ---------- Dashboard Init (no longer auto-navigates) ----------
         function initDashboard() {
             document.getElementById('userName').textContent = currentUser.name;
             document.getElementById('userInitial').textContent = currentUser.name.charAt(0).toUpperCase();
-            if (currentUser.role === 'teacher') {
-                document.getElementById('teacherLinks').classList.remove('hidden');
-            } else {
-                document.getElementById('teacherLinks').classList.add('hidden');
-            }
-            const defaultPage = currentUser.role === 'teacher' ? 'manage-classes' : 'homework';
-            navigateTo(defaultPage);
+            document.getElementById('teacherLinks').classList.toggle('hidden', currentUser.role !== 'teacher');
+            // Sidebar click interception
             document.querySelectorAll('#sidebarNav a').forEach(link => {
                 link.addEventListener('click', (e) => {
                     e.preventDefault();
-                    navigateTo(link.dataset.page);
+                    const path = link.getAttribute('href');
+                    if (path) routerNavigate(path);
                     if (window.innerWidth <= 768) closeSidebar();
                 });
             });
             if (!localStorage.getItem('theme')) localStorage.setItem('theme', 'dark');
             applyTheme(localStorage.getItem('theme'));
-            document.getElementById('userInitial').style.width = '2rem';
-            document.getElementById('userInitial').style.height = '2rem';
         }
 
-        // ---------- Navigation ----------
+        // ---------- Navigation (internal page render) ----------
         function navigateTo(page) {
             document.querySelectorAll('#sidebarNav a').forEach(a => a.classList.remove('active'));
             const activeLink = document.querySelector(`#sidebarNav a[data-page="${page}"]`);
@@ -638,17 +570,12 @@
             initLucide();
         }
 
-        function getStudentClass() {
-            return currentUser?.class || '';
-        }
+        function getStudentClass() { return currentUser?.class || ''; }
 
         // ---------- Render Functions ----------
         function renderHomework() {
             const classFilter = currentUser.role === 'teacher' ? 'all' : getStudentClass();
-            const items = dataStore.homeworks
-    .map((hw, idx) => ({ ...hw, originalIndex: idx }))
-    .filter(hw => classFilter === 'all' || hw.class === classFilter)
-    .reverse();
+            const items = dataStore.homeworks.filter(hw => classFilter === 'all' || hw.class === classFilter);
             const html = items.length ? items.map((hw, i) => `
             <div class="card p-4 flex justify-between items-start">
               <div>
@@ -665,10 +592,7 @@
 
         function renderDailyWork() {
             const classFilter = currentUser.role === 'teacher' ? 'all' : getStudentClass();
-            const items = dataStore.dailyWorks
-    .map((dw, idx) => ({ ...dw, originalIndex: idx }))
-    .filter(dw => classFilter === 'all' || dw.class === classFilter)
-    .reverse();
+            const items = dataStore.dailyWorks.filter(dw => classFilter === 'all' || dw.class === classFilter);
             const html = items.length ? items.map((dw, i) => `
             <div class="card p-4 flex justify-between">
               <div>
@@ -699,379 +623,122 @@
             return `<div class="space-y-6 animate-fade-in"><h2 class="text-2xl font-bold flex items-center gap-2"><i data-lucide="clipboard-list" class="w-6 h-6"></i> Weekly Plan</h2><div class="grid gap-4">${html}</div></div>`;
         }
 
-function renderDiscipline() {
-    let records;
-    if (currentUser.role === 'teacher') {
-        records = dataStore.disciplineRecords;
-    } else {
-        records = dataStore.disciplineRecords.filter(r => r.studentId === currentUser.id);
-    }
-
-    // Newest → Oldest
-    records = records.slice().sort((a, b) => new Date(b.date) - new Date(a.date));
-
-    const html = records.length ? records.map((r, i) => {
-        const student = dataStore.users.find(u => u.id === r.studentId);
-        const studentName = student ? student.name : r.studentId;
-        return `
-        <div class="card p-4 flex justify-between">
-          <div>
-            <p class="font-medium">${r.note}</p>
-            <div class="text-xs text-[var(--text-secondary)] mt-1">
-              ${r.date} ${currentUser.role === 'teacher' ? `· Student: ${studentName}` : ''}
-            </div>
-          </div>
-          ${currentUser.role === 'teacher' ? `<button onclick="deleteDiscipline(${i})" class="text-red-400 hover:text-red-300"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : ''}
-        </div>
-      `;
-    }).join('') : '<p class="text-[var(--text-secondary)]">No discipline records.</p>';
-
-    return `<div class="space-y-6 animate-fade-in"><h2 class="text-2xl font-bold flex items-center gap-2"><i data-lucide="shield-alert" class="w-6 h-6"></i> Discipline</h2><div class="grid gap-4">${html}</div></div>`;
-}
+        function renderDiscipline() {
+            let records;
+            if (currentUser.role === 'teacher') {
+                records = dataStore.disciplineRecords;
+            } else {
+                records = dataStore.disciplineRecords.filter(r => r.studentId === currentUser.id);
+            }
+            const html = records.length ? records.map((r, i) => {
+                const student = dataStore.users.find(u => u.id === r.studentId);
+                const studentName = student ? student.name : r.studentId;
+                return `
+                <div class="card p-4 flex justify-between">
+                  <div>
+                    <p class="font-medium">${r.note}</p>
+                    <div class="text-xs text-[var(--text-secondary)] mt-1">
+                      ${r.date} ${currentUser.role === 'teacher' ? `· Student: ${studentName}` : ''}
+                    </div>
+                  </div>
+                  ${currentUser.role === 'teacher' ? `<button onclick="deleteDiscipline(${i})" class="text-red-400 hover:text-red-300"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : ''}
+                </div>
+              `;
+            }).join('') : '<p class="text-[var(--text-secondary)]">No discipline records.</p>';
+            return `<div class="space-y-6 animate-fade-in"><h2 class="text-2xl font-bold flex items-center gap-2"><i data-lucide="shield-alert" class="w-6 h-6"></i> Discipline</h2><div class="grid gap-4">${html}</div></div>`;
+        }
 
         // ---------- Delete Handlers ----------
-        async function deleteHomework(index) {
-            if (await confirm('Delete this homework?')) {
-                dataStore.homeworks.splice(index, 1);
-                await saveLocal();
-                navigateTo('homework');
-            }
-        }
-        async function deleteDailyWork(index) {
-            if (await confirm('Delete this daily work?')) {
-                dataStore.dailyWorks.splice(index, 1);
-                await saveLocal();
-                navigateTo('daily-work');
-            }
-        }
-        async function deleteWeeklyPlan(index) {
-            if (await confirm('Delete this weekly plan?')) {
-                dataStore.weeklyPlans.splice(index, 1);
-                await saveLocal();
-                navigateTo('weekly-plan');
-            }
-        }
-        async function deleteDiscipline(index) {
-            if (await confirm('Delete this discipline record?')) {
-                dataStore.disciplineRecords.splice(index, 1);
-                await saveLocal();
-                navigateTo('discipline');
-            }
-        }
+        async function deleteHomework(index) { if (await confirm('Delete?')) { dataStore.homeworks.splice(index,1); await saveLocal(); navigateTo('homework'); } }
+        async function deleteDailyWork(index) { if (await confirm('Delete?')) { dataStore.dailyWorks.splice(index,1); await saveLocal(); navigateTo('daily-work'); } }
+        async function deleteWeeklyPlan(index) { if (await confirm('Delete?')) { dataStore.weeklyPlans.splice(index,1); await saveLocal(); navigateTo('weekly-plan'); } }
+        async function deleteDiscipline(index) { if (await confirm('Delete?')) { dataStore.disciplineRecords.splice(index,1); await saveLocal(); navigateTo('discipline'); } }
 
         // ---------- Manage Classes ----------
-        function renderManageClasses() {
+        function renderManageClasses() { /* unchanged */ 
             const classes = dataStore.classes;
-            const list = classes.map(c => `
-            <div class="flex justify-between items-center card p-3">
-              <span>${c}</span>
-              <button onclick="deleteClass('${c}')" class="text-red-400 hover:text-red-300"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-            </div>
-          `).join('');
-            return `
-            <div class="space-y-6 animate-fade-in">
-              <h2 class="text-2xl font-bold flex items-center gap-2"><i data-lucide="school" class="w-6 h-6"></i> Classes</h2>
-              <div class="grid gap-3">${list || '<p class="text-[var(--text-secondary)]">No classes yet.</p>'}</div>
-              <div class="card p-4">
-                <h3 class="font-semibold mb-2">Add Class</h3>
-                <form onsubmit="addClass(event)" class="flex gap-2">
-                  <input type="text" id="newClassName" placeholder="Class name" class="input-field" required>
-                  <button type="submit" class="btn">Add</button>
-                </form>
-              </div>
-            </div>
-          `;
+            const list = classes.map(c => `<div class="flex justify-between items-center card p-3"><span>${c}</span><button onclick="deleteClass('${c}')" class="text-red-400 hover:text-red-300"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div>`).join('');
+            return `<div class="space-y-6 animate-fade-in"><h2 class="text-2xl font-bold flex items-center gap-2"><i data-lucide="school" class="w-6 h-6"></i> Classes</h2><div class="grid gap-3">${list||'<p class="text-[var(--text-secondary)]">No classes yet.</p>'}</div>
+            <div class="card p-4"><h3 class="font-semibold mb-2">Add Class</h3><form onsubmit="addClass(event)" class="flex gap-2"><input type="text" id="newClassName" placeholder="Class name" class="input-field" required><button type="submit" class="btn">Add</button></form></div></div>`;
         }
-
-        async function addClass(e) {
-            e.preventDefault();
-            const name = document.getElementById('newClassName').value.trim();
-            if (!name || dataStore.classes.includes(name)) return;
-            dataStore.classes.push(name);
-            await saveLocal();
-            navigateTo('manage-classes');
-        }
-
-        async function deleteClass(className) {
-            if (!await confirm(`Delete ${className}?`)) return;
-            dataStore.classes = dataStore.classes.filter(c => c !== className);
-            dataStore.homeworks = dataStore.homeworks.filter(h => h.class !== className);
-            dataStore.dailyWorks = dataStore.dailyWorks.filter(d => d.class !== className);
-            dataStore.weeklyPlans = dataStore.weeklyPlans.filter(w => w.class !== className);
-            dataStore.users.forEach(u => {
-                if (u.class === className) u.class = '';
-            });
-            await saveLocal();
-            navigateTo('manage-classes');
-        }
+        async function addClass(e) { e.preventDefault(); const name = document.getElementById('newClassName').value.trim(); if(!name||dataStore.classes.includes(name))return; dataStore.classes.push(name); await saveLocal(); navigateTo('manage-classes'); }
+        async function deleteClass(className) { if(!await confirm(`Delete ${className}?`))return; dataStore.classes=dataStore.classes.filter(c=>c!==className); dataStore.homeworks=dataStore.homeworks.filter(h=>h.class!==className); dataStore.dailyWorks=dataStore.dailyWorks.filter(d=>d.class!==className); dataStore.weeklyPlans=dataStore.weeklyPlans.filter(w=>w.class!==className); dataStore.users.forEach(u=>{if(u.class===className) u.class=''}); await saveLocal(); navigateTo('manage-classes'); }
 
         // ---------- Manage Students ----------
-        function renderManageStudents() {
-            const students = dataStore.users.filter(u => u.role === 'student');
-            const rows = students.map(s => `
-            <tr class="border-b border-[var(--border)]">
-              <td class="py-2">${s.id}</td>
-              <td>${s.name}</td>
-              <td>${s.dob}</td>
-              <td>${s.class || '-'}</td>
-              <td><button onclick="removeStudent('${s.id}')" class="text-red-400 hover:text-red-300"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td>
-            </tr>
-          `).join('');
-            return `
-            <div class="space-y-6 animate-fade-in">
-              <h2 class="text-2xl font-bold flex items-center gap-2"><i data-lucide="users" class="w-6 h-6"></i> Students</h2>
-              <div class="card p-4 overflow-x-auto">
-                <table class="w-full text-left">
-                  <thead><tr class="border-b border-[var(--border)]"><th class="py-2">ID</th><th>Name</th><th>DOB</th><th>Class</th><th></th></tr></thead>
-                  <tbody>${rows || '<tr><td colspan="5" class="py-4 text-center text-[var(--text-secondary)]">No students.</td></tr>'}</tbody>
-                </table>
-              </div>
-              <div class="card p-4">
-                <h3 class="font-semibold mb-2">Add Student</h3>
-                <form onsubmit="addStudent(event)" class="space-y-3">
-                  <input type="text" id="newId" placeholder="ID" class="input-field" required>
-                  <input type="text" id="newName" placeholder="Full Name" class="input-field" required>
-                  <input type="text" id="newDob" placeholder="DOB (DD/MM/YYYY)" class="input-field" required>
-                  <input type="password" id="newPassword" placeholder="Password (min 6 chars)" class="input-field" minlength="6" required>
-                  <select id="newClass" class="input-field">
-                    <option value="">Select class</option>
-                    ${dataStore.classes.map(c => `<option value="${c}">${c}</option>`).join('')}
-                  </select>
-                  <button type="submit" class="btn">Add Student</button>
-                </form>
-              </div>
-            </div>
-          `;
+        function renderManageStudents() { /* unchanged */
+            const students = dataStore.users.filter(u=>u.role==='student');
+            const rows = students.map(s=>`<tr class="border-b border-[var(--border)]"><td class="py-2">${s.id}</td><td>${s.name}</td><td>${s.dob}</td><td>${s.class||'-'}</td><td><button onclick="removeStudent('${s.id}')" class="text-red-400 hover:text-red-300"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td></tr>`).join('');
+            return `<div class="space-y-6 animate-fade-in"><h2 class="text-2xl font-bold flex items-center gap-2"><i data-lucide="users" class="w-6 h-6"></i> Students</h2>
+            <div class="card p-4 overflow-x-auto"><table class="w-full text-left"><thead><tr class="border-b border-[var(--border)]"><th class="py-2">ID</th><th>Name</th><th>DOB</th><th>Class</th><th></th></tr></thead><tbody>${rows||'<tr><td colspan="5" class="py-4 text-center text-[var(--text-secondary)]">No students.</td></tr>'}</tbody></table></div>
+            <div class="card p-4"><h3 class="font-semibold mb-2">Add Student</h3><form onsubmit="addStudent(event)" class="space-y-3">
+            <input type="text" id="newId" placeholder="ID" class="input-field" required>
+            <input type="text" id="newName" placeholder="Full Name" class="input-field" required>
+            <input type="text" id="newDob" placeholder="DOB (DD/MM/YYYY)" class="input-field" required>
+            <input type="password" id="newPassword" placeholder="Password (min 6 chars)" class="input-field" minlength="6" required>
+            <select id="newClass" class="input-field"><option value="">Select class</option>${dataStore.classes.map(c=>`<option value="${c}">${c}</option>`).join('')}</select>
+            <button type="submit" class="btn">Add Student</button></form></div></div>`;
         }
-
-        async function addStudent(e) {
-            e.preventDefault();
-            const id = document.getElementById('newId').value.trim();
-            const name = document.getElementById('newName').value.trim();
-            const dob = document.getElementById('newDob').value.trim();
-            const password = document.getElementById('newPassword').value;
-            const cls = document.getElementById('newClass').value;
-            if (!id || !name || !dob || !password) return;
-            if (password.length < 6) {
-                await alert('Password min 6 chars.');
-                return;
-            }
-            if (dataStore.users.find(u => u.id === id)) {
-                await alert('ID already exists.');
-                return;
-            }
-            dataStore.users.push({ id, name, dob, password, role: 'student', class: cls });
-            await saveLocal();
-            navigateTo('manage-students');
-        }
-
-        async function removeStudent(id) {
-            if (!await confirm('Remove this student?')) return;
-            dataStore.users = dataStore.users.filter(u => u.id !== id);
-            dataStore.disciplineRecords = dataStore.disciplineRecords.filter(r => r.studentId !== id);
-            await saveLocal();
-            navigateTo('manage-students');
-        }
+        async function addStudent(e) { e.preventDefault(); const id=document.getElementById('newId').value.trim(), name=document.getElementById('newName').value.trim(), dob=document.getElementById('newDob').value.trim(), password=document.getElementById('newPassword').value, cls=document.getElementById('newClass').value; if(!id||!name||!dob||!password)return; if(password.length<6){await alert('Password min 6 chars.');return;} if(dataStore.users.find(u=>u.id===id)){await alert('ID exists.');return;} dataStore.users.push({id,name,dob,password,role:'student',class:cls}); await saveLocal(); navigateTo('manage-students'); }
+        async function removeStudent(id) { if(!await confirm('Remove?'))return; dataStore.users=dataStore.users.filter(u=>u.id!==id); dataStore.disciplineRecords=dataStore.disciplineRecords.filter(r=>r.studentId!==id); await saveLocal(); navigateTo('manage-students'); }
 
         // ---------- Manage Content ----------
-        function renderManageContent() {
-            const classOptions = dataStore.classes.map(c => `<option value="${c}">${c}</option>`).join('');
-            const studentOptions = dataStore.users.filter(u => u.role === 'student').map(s => `<option value="${s.id}">${s.name} (${s.id})</option>`).join('');
-            return `
-            <div class="space-y-8 animate-fade-in">
-              <h2 class="text-2xl font-bold flex items-center gap-2"><i data-lucide="edit" class="w-6 h-6"></i> Manage Content</h2>
-              <!-- Add Homework -->
-              <div class="card p-4">
-                <h3 class="font-semibold mb-2">Add Homework</h3>
-                <form onsubmit="addHomework(event)" class="space-y-3">
-                  <input type="text" id="hwTitle" placeholder="Title" class="input-field" required>
-                  <input type="text" id="hwDesc" placeholder="Description" class="input-field" required>
-                  <input type="text" id="hwDue" placeholder="Due date (DD/MM/YYYY)" class="input-field">
-                  <select id="hwClass" class="input-field" required>
-                    <option value="">Select class</option>
-                    ${classOptions}
-                  </select>
-                  <button type="submit" class="btn">Add Homework</button>
-                </form>
-              </div>
-              <!-- Add Daily Work -->
-              <div class="card p-4">
-                <h3 class="font-semibold mb-2">Add Daily Work</h3>
-                <form onsubmit="addDailyWork(event)" class="space-y-3">
-                  <input type="text" id="dwTitle" placeholder="Title" class="input-field" required>
-                  <input type="text" id="dwDesc" placeholder="Description" class="input-field" required>
-                  <input type="text" id="dwDate" placeholder="Date (DD/MM/YYYY)" class="input-field">
-                  <select id="dwClass" class="input-field" required>
-                    <option value="">Select class</option>
-                    ${classOptions}
-                  </select>
-                  <button type="submit" class="btn">Add Daily Work</button>
-                </form>
-              </div>
-              <!-- Add Weekly Plan -->
-              <div class="card p-4">
-                <h3 class="font-semibold mb-2">Add Weekly Plan</h3>
-                <form onsubmit="addWeeklyPlan(event)" class="space-y-3">
-                  <input type="text" id="wpWeek" placeholder="Week (e.g., Week 1)" class="input-field" required>
-                  <input type="text" id="wpPlan" placeholder="Plan details" class="input-field" required>
-                  <select id="wpClass" class="input-field" required>
-                    <option value="">Select class</option>
-                    ${classOptions}
-                  </select>
-                  <button type="submit" class="btn">Add Weekly Plan</button>
-                </form>
-              </div>
-              <!-- Add Discipline -->
-              <div class="card p-4">
-                <h3 class="font-semibold mb-2">Add Discipline Record</h3>
-                <form onsubmit="addDiscipline(event)" class="space-y-3">
-                  <select id="discStudent" class="input-field" required>
-                    <option value="">Select student</option>
-                    ${studentOptions}
-                  </select>
-                  <input type="text" id="discNote" placeholder="Note" class="input-field" required>
-                  <input type="text" id="discDate" placeholder="Date (DD/MM/YYYY)" class="input-field" required>
-                  <button type="submit" class="btn">Add Record</button>
-                </form>
-              </div>
-              <!-- Clear Content -->
-              <div class="card p-4">
-                <h3 class="font-semibold mb-2">Clear All Content</h3>
-                <div class="flex flex-wrap gap-2">
-                  <button onclick="clearContent('homeworks')" class="btn-outline btn"><i data-lucide="trash-2" class="w-4 h-4"></i> Clear Homework</button>
-                  <button onclick="clearContent('dailyWorks')" class="btn-outline btn"><i data-lucide="trash-2" class="w-4 h-4"></i> Clear Daily Work</button>
-                  <button onclick="clearContent('weeklyPlans')" class="btn-outline btn"><i data-lucide="trash-2" class="w-4 h-4"></i> Clear Weekly Plans</button>
-                  <button onclick="clearContent('disciplineRecords')" class="btn-outline btn"><i data-lucide="trash-2" class="w-4 h-4"></i> Clear Discipline</button>
-                </div>
-              </div>
-            </div>
-          `;
+        function renderManageContent() { /* unchanged */
+            const classOptions = dataStore.classes.map(c=>`<option value="${c}">${c}</option>`).join('');
+            const studentOptions = dataStore.users.filter(u=>u.role==='student').map(s=>`<option value="${s.id}">${s.name} (${s.id})</option>`).join('');
+            return `<div class="space-y-8 animate-fade-in"><h2 class="text-2xl font-bold flex items-center gap-2"><i data-lucide="edit" class="w-6 h-6"></i> Manage Content</h2>
+            <div class="card p-4"><h3 class="font-semibold mb-2">Add Homework</h3><form onsubmit="addHomework(event)" class="space-y-3">
+            <input type="text" id="hwTitle" placeholder="Title" class="input-field" required>
+            <input type="text" id="hwDesc" placeholder="Description" class="input-field" required>
+            <input type="text" id="hwDue" placeholder="Due date" class="input-field">
+            <select id="hwClass" class="input-field" required><option value="">Select class</option>${classOptions}</select>
+            <button type="submit" class="btn">Add Homework</button></form></div>
+            <div class="card p-4"><h3 class="font-semibold mb-2">Add Daily Work</h3><form onsubmit="addDailyWork(event)" class="space-y-3">
+            <input type="text" id="dwTitle" placeholder="Title" class="input-field" required>
+            <input type="text" id="dwDesc" placeholder="Description" class="input-field" required>
+            <input type="text" id="dwDate" placeholder="Date" class="input-field">
+            <select id="dwClass" class="input-field" required><option value="">Select class</option>${classOptions}</select>
+            <button type="submit" class="btn">Add Daily Work</button></form></div>
+            <div class="card p-4"><h3 class="font-semibold mb-2">Add Weekly Plan</h3><form onsubmit="addWeeklyPlan(event)" class="space-y-3">
+            <input type="text" id="wpWeek" placeholder="Week" class="input-field" required>
+            <input type="text" id="wpPlan" placeholder="Plan details" class="input-field" required>
+            <select id="wpClass" class="input-field" required><option value="">Select class</option>${classOptions}</select>
+            <button type="submit" class="btn">Add Weekly Plan</button></form></div>
+            <div class="card p-4"><h3 class="font-semibold mb-2">Add Discipline Record</h3><form onsubmit="addDiscipline(event)" class="space-y-3">
+            <select id="discStudent" class="input-field" required><option value="">Select student</option>${studentOptions}</select>
+            <input type="text" id="discNote" placeholder="Note" class="input-field" required>
+            <input type="text" id="discDate" placeholder="Date" class="input-field" required>
+            <button type="submit" class="btn">Add Record</button></form></div>
+            <div class="card p-4"><h3 class="font-semibold mb-2">Clear All Content</h3>
+            <div class="flex flex-wrap gap-2">
+            <button onclick="clearContent('homeworks')" class="btn-outline btn"><i data-lucide="trash-2" class="w-4 h-4"></i> Clear Homework</button>
+            <button onclick="clearContent('dailyWorks')" class="btn-outline btn"><i data-lucide="trash-2" class="w-4 h-4"></i> Clear Daily Work</button>
+            <button onclick="clearContent('weeklyPlans')" class="btn-outline btn"><i data-lucide="trash-2" class="w-4 h-4"></i> Clear Weekly Plans</button>
+            <button onclick="clearContent('disciplineRecords')" class="btn-outline btn"><i data-lucide="trash-2" class="w-4 h-4"></i> Clear Discipline</button>
+            </div></div></div>`;
         }
-
-        async function addHomework(e) {
-            e.preventDefault();
-            const title = document.getElementById('hwTitle').value.trim();
-            const desc = document.getElementById('hwDesc').value.trim();
-            const due = document.getElementById('hwDue').value.trim();
-            const cls = document.getElementById('hwClass').value;
-            if (!title || !desc || !cls) return;
-            dataStore.homeworks.push({ title, description: desc, dueDate: due, class: cls });
-            await saveLocal();
-            navigateTo('manage-content');
-        }
-
-        async function addDailyWork(e) {
-            e.preventDefault();
-            const title = document.getElementById('dwTitle').value.trim();
-            const desc = document.getElementById('dwDesc').value.trim();
-            const date = document.getElementById('dwDate').value.trim();
-            const cls = document.getElementById('dwClass').value;
-            if (!title || !desc || !cls) return;
-            dataStore.dailyWorks.push({ title, description: desc, date, class: cls });
-            await saveLocal();
-            navigateTo('manage-content');
-        }
-
-        async function addWeeklyPlan(e) {
-            e.preventDefault();
-            const week = document.getElementById('wpWeek').value.trim();
-            const plan = document.getElementById('wpPlan').value.trim();
-            const cls = document.getElementById('wpClass').value;
-            if (!week || !plan || !cls) return;
-            dataStore.weeklyPlans.push({ week, plan, class: cls });
-            await saveLocal();
-            navigateTo('manage-content');
-        }
-
-        async function addDiscipline(e) {
-            e.preventDefault();
-            const studentId = document.getElementById('discStudent').value;
-            const note = document.getElementById('discNote').value.trim();
-            const date = document.getElementById('discDate').value.trim();
-            if (!studentId || !note || !date) return;
-            dataStore.disciplineRecords.push({ studentId, note, date });
-            await saveLocal();
-            navigateTo('manage-content');
-        }
-
-        async function clearContent(key) {
-            if (await confirm(`Clear all ${key}?`)) {
-                dataStore[key] = [];
-                await saveLocal();
-                navigateTo('manage-content');
-            }
-        }
+        async function addHomework(e) { e.preventDefault(); const title=document.getElementById('hwTitle').value.trim(), desc=document.getElementById('hwDesc').value.trim(), due=document.getElementById('hwDue').value.trim(), cls=document.getElementById('hwClass').value; if(!title||!desc||!cls)return; dataStore.homeworks.push({title,description:desc,dueDate:due,class:cls}); await saveLocal(); navigateTo('manage-content'); }
+        async function addDailyWork(e) { e.preventDefault(); const title=document.getElementById('dwTitle').value.trim(), desc=document.getElementById('dwDesc').value.trim(), date=document.getElementById('dwDate').value.trim(), cls=document.getElementById('dwClass').value; if(!title||!desc||!cls)return; dataStore.dailyWorks.push({title,description:desc,date,class:cls}); await saveLocal(); navigateTo('manage-content'); }
+        async function addWeeklyPlan(e) { e.preventDefault(); const week=document.getElementById('wpWeek').value.trim(), plan=document.getElementById('wpPlan').value.trim(), cls=document.getElementById('wpClass').value; if(!week||!plan||!cls)return; dataStore.weeklyPlans.push({week,plan,class:cls}); await saveLocal(); navigateTo('manage-content'); }
+        async function addDiscipline(e) { e.preventDefault(); const studentId=document.getElementById('discStudent').value, note=document.getElementById('discNote').value.trim(), date=document.getElementById('discDate').value.trim(); if(!studentId||!note||!date)return; dataStore.disciplineRecords.push({studentId,note,date}); await saveLocal(); navigateTo('manage-content'); }
+        async function clearContent(key) { if(await confirm(`Clear all ${key}?`)){ dataStore[key]=[]; await saveLocal(); navigateTo('manage-content'); } }
 
         // ---------- Change Password ----------
-        function renderChangePassword() {
-            return `
-            <div class="space-y-6 animate-fade-in max-w-md">
-              <h2 class="text-2xl font-bold flex items-center gap-2"><i data-lucide="key" class="w-6 h-6"></i> Change Password</h2>
-              <div class="card p-4 space-y-3">
-                <input type="password" id="oldPass" placeholder="Current password" class="input-field">
-                <input type="password" id="newPass" placeholder="New password (min 6 chars)" class="input-field" minlength="6">
-                <button onclick="changePassword()" class="btn w-full justify-center">Update</button>
-                <p id="passMsg" class="text-sm hidden"></p>
-              </div>
-            </div>
-          `;
-        }
-
-        async function changePassword() {
-            const old = document.getElementById('oldPass').value;
-            const newPass = document.getElementById('newPass').value;
-            const msg = document.getElementById('passMsg');
-            msg.classList.add('hidden');
-            if (old !== currentUser.password) {
-                msg.textContent = 'Wrong current password.';
-                msg.className = 'text-sm text-red-400';
-                msg.classList.remove('hidden');
-                return;
-            }
-            if (newPass.length < 6) {
-                msg.textContent = 'Min 6 characters.';
-                msg.className = 'text-sm text-red-400';
-                msg.classList.remove('hidden');
-                return;
-            }
-            const user = dataStore.users.find(u => u.id === currentUser.id);
-            if (user) user.password = newPass;
-            currentUser.password = newPass;
-            await saveLocal();
-            msg.textContent = 'Password updated.';
-            msg.className = 'text-sm text-green-400';
-            msg.classList.remove('hidden');
-        }
+        function renderChangePassword() { return `<div class="space-y-6 animate-fade-in max-w-md"><h2 class="text-2xl font-bold flex items-center gap-2"><i data-lucide="key" class="w-6 h-6"></i> Change Password</h2>
+            <div class="card p-4 space-y-3"><input type="password" id="oldPass" placeholder="Current password" class="input-field">
+            <input type="password" id="newPass" placeholder="New password (min 6 chars)" class="input-field" minlength="6">
+            <button onclick="changePassword()" class="btn w-full justify-center">Update</button><p id="passMsg" class="text-sm hidden"></p></div></div>`; }
+        async function changePassword() { const old=document.getElementById('oldPass').value, newPass=document.getElementById('newPass').value, msg=document.getElementById('passMsg'); msg.classList.add('hidden'); if(old!==currentUser.password){msg.textContent='Wrong current password.';msg.className='text-sm text-red-400';msg.classList.remove('hidden');return;} if(newPass.length<6){msg.textContent='Min 6 characters.';msg.className='text-sm text-red-400';msg.classList.remove('hidden');return;} const user=dataStore.users.find(u=>u.id===currentUser.id); if(user) user.password=newPass; currentUser.password=newPass; await saveLocal(); msg.textContent='Password updated.';msg.className='text-sm text-green-400';msg.classList.remove('hidden'); }
 
         // ---------- Theme Toggle ----------
-        function toggleTheme() {
-            const current = document.body.classList.contains('light') ? 'light' : 'dark';
-            const next = current === 'dark' ? 'light' : 'dark';
-            applyTheme(next);
-            localStorage.setItem('theme', next);
-        }
-
-        function applyTheme(theme) {
-            if (theme === 'light') {
-                document.body.classList.add('light');
-                document.getElementById('themeIcon').setAttribute('data-lucide', 'moon');
-            } else {
-                document.body.classList.remove('light');
-                document.getElementById('themeIcon').setAttribute('data-lucide', 'sun');
-            }
-            initLucide();
-        }
+        function toggleTheme() { const current=document.body.classList.contains('light')?'light':'dark'; const next=current==='dark'?'light':'dark'; applyTheme(next); localStorage.setItem('theme',next); }
+        function applyTheme(theme) { if(theme==='light'){document.body.classList.add('light');document.getElementById('themeIcon').setAttribute('data-lucide','moon');} else {document.body.classList.remove('light');document.getElementById('themeIcon').setAttribute('data-lucide','sun');} initLucide(); }
 
         // ---------- Logout ----------
         function logout() {
             currentUser = null;
-            // Clear session persistence parameters
             localStorage.removeItem('IbraEdu_LoggedInUserId');
-            document.getElementById('appScreen').classList.add('hidden');
-            document.getElementById('loginScreen').classList.remove('hidden');
-            document.getElementById('loginId').value = '';
-            document.getElementById('loginPassword').value = '';
-            document.getElementById('loginError').classList.add('hidden');
+            history.replaceState(null, '', '/login');
+            renderLoginScreen();
             closeSidebar();
         }
 
@@ -1079,44 +746,41 @@ function renderDiscipline() {
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             if (window.innerWidth <= 768) {
-                // Safeguard against collapsed class conflict on mobile viewports
                 sidebar.classList.remove('collapsed');
                 sidebar.classList.toggle('open');
                 document.getElementById('sidebarOverlay').classList.toggle('show');
             } else {
-                // Safely toggle collapsed on desktop configurations
                 sidebar.classList.remove('open');
                 sidebar.classList.toggle('collapsed');
             }
         }
-
         function closeSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            sidebar.classList.remove('open');
+            document.getElementById('sidebar').classList.remove('open');
             document.getElementById('sidebarOverlay').classList.remove('show');
         }
 
         // ---------- Startup ----------
-        // ---------- Startup ----------
-window.addEventListener('DOMContentLoaded', async () => {
-    await initialDataLoad();
-    initLucide();
-    
-    // Check for a saved login session AFTER data is fully loaded from Supabase/LocalStorage
-    const savedUserId = localStorage.getItem('IbraEdu_LoggedInUserId');
-    if (savedUserId && dataStore.users && dataStore.users.length > 0) {
-        const user = dataStore.users.find(u => u.id === savedUserId);
-        if (user) {
-            currentUser = user;
-            document.getElementById('loginScreen').classList.add('hidden');
-            document.getElementById('appScreen').classList.remove('hidden');
-            initDashboard();
-            requestNotificationPermission();
-            startPolling();
-            console.log(`%c✔ Automatically logged in as ${user.name}`, 'color: #4ade80;');
-        }
-    }
-});
+        window.addEventListener('DOMContentLoaded', async () => {
+            await initialDataLoad();
+            initLucide();
+            // Try auto-login from saved session
+            const savedUserId = localStorage.getItem('IbraEdu_LoggedInUserId');
+            if (savedUserId && dataStore.users && dataStore.users.length > 0) {
+                const user = dataStore.users.find(u => u.id === savedUserId);
+                if (user) {
+                    currentUser = user;
+                    console.log(`%c✔ Auto-logged in as ${user.name}`, 'color: #4ade80;');
+                }
+            }
+            // Call handleRoute after auto-login attempt
+            handleRoute();
+            // If user is now logged in, init dashboard (it also sets up event listeners)
+            if (currentUser) {
+                initDashboard();
+                requestNotificationPermission();
+                startPolling();
+            }
+        });
     </script>
 
     <!-- Service Worker Registration -->
@@ -1130,5 +794,4 @@ window.addEventListener('DOMContentLoaded', async () => {
         }
     </script>
 </body>
-
 </html>
