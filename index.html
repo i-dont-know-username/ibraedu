@@ -690,7 +690,7 @@ async function attemptLogin() {
             document.getElementById('sidebarOverlay').classList.remove('show');
         }
 
-        // ---------- Startup ----------
+// ---------- Startup ----------
         window.addEventListener('DOMContentLoaded', async () => {
             await initialDataLoad();
             initLucide();
@@ -705,7 +705,16 @@ async function attemptLogin() {
                     startPolling();
                 }
             }
-            handleRoute();  // show correct page (login or default) based on currentUser
+            
+            // FIX: If the user is logged in and loads the root URL directly, 
+            // use a safe microtask timeout to defer the router rendering loop execution thread
+            if (window.location.pathname === '/' && currentUser) {
+                const defaultPage = currentUser.role === 'teacher' ? '/classes' : '/homework';
+                history.replaceState(null, '', defaultPage);
+                setTimeout(handleRoute, 0);
+            } else {
+                handleRoute();
+            }
         });
     </script>
 
