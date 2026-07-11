@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>404 - Page Not Found</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><rect width='24' height='24' rx='7' ry='7' fill='%23171717'/><g transform='translate(4.8 4.8) scale(0.6)' fill='none' stroke='%23f5f5f5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M22 10v6M2 10l10-5 10 5-10 5z'/><path d='M6 12v5c0 2 4 3 6 3s6-1 6-3v-5'/></g></svg>" />
+    <script src="https://cdn.tailwindcss.com/"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Inter', sans-serif; transition: background-color 0.3s, color 0.3s, border-color 0.3s; }
+        :root { --bg: #0a0a0a; --surface: #171717; --border: #2e2e2e; --text: #f5f5f5; --text-secondary: #a3a3a3; }
+        body { background-color: var(--bg); color: var(--text); }
+        .btn { background-color: var(--text); color: var(--bg); border-radius: 0.5rem; padding: 0.5rem 1rem; font-weight: 500; transition: opacity 0.2s; display: inline-flex; align-items: center; gap: 0.5rem; }
+        .btn:hover { opacity: 0.8; }
+        .error-page { display: flex; align-items: center; justify-content: center; min-height: 100vh; text-align: center; background-color: var(--bg); color: var(--text); }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-center items-center p-4">
+
+    <div class="error-page flex-col space-y-4 animate-fade-in">
+        <h1 class="text-6xl font-bold tracking-tight text-[var(--text)]">404</h1>
+        <p class="text-xl text-[var(--text-secondary)]">Page not found</p>
+        <div class="pt-2">
+            <a href="https://ibraedu.vercel.app/login" class="btn">
+                Go to Login
+            </a>
+        </div>
+    </div>
+
+</body>
+</html>
