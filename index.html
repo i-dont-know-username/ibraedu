@@ -645,7 +645,10 @@
         // ---------- Render Functions ----------
         function renderHomework() {
             const classFilter = currentUser.role === 'teacher' ? 'all' : getStudentClass();
-            const items = dataStore.homeworks.filter(hw => classFilter === 'all' || hw.class === classFilter);
+            const items = dataStore.homeworks
+    .map((hw, idx) => ({ ...hw, originalIndex: idx }))
+    .filter(hw => classFilter === 'all' || hw.class === classFilter)
+    .reverse();
             const html = items.length ? items.map((hw, i) => `
             <div class="card p-4 flex justify-between items-start">
               <div>
@@ -662,7 +665,10 @@
 
         function renderDailyWork() {
             const classFilter = currentUser.role === 'teacher' ? 'all' : getStudentClass();
-            const items = dataStore.dailyWorks.filter(dw => classFilter === 'all' || dw.class === classFilter);
+            const items = dataStore.dailyWorks
+    .map((dw, idx) => ({ ...dw, originalIndex: idx }))
+    .filter(dw => classFilter === 'all' || dw.class === classFilter)
+    .reverse();
             const html = items.length ? items.map((dw, i) => `
             <div class="card p-4 flex justify-between">
               <div>
