@@ -699,30 +699,35 @@
             return `<div class="space-y-6 animate-fade-in"><h2 class="text-2xl font-bold flex items-center gap-2"><i data-lucide="clipboard-list" class="w-6 h-6"></i> Weekly Plan</h2><div class="grid gap-4">${html}</div></div>`;
         }
 
-        function renderDiscipline() {
-            let records;
-            if (currentUser.role === 'teacher') {
-                records = dataStore.disciplineRecords;
-            } else {
-                records = dataStore.disciplineRecords.filter(r => r.studentId === currentUser.id);
-            }
-            const html = records.length ? records.map((r, i) => {
-                const student = dataStore.users.find(u => u.id === r.studentId);
-                const studentName = student ? student.name : r.studentId;
-                return `
-                <div class="card p-4 flex justify-between">
-                  <div>
-                    <p class="font-medium">${r.note}</p>
-                    <div class="text-xs text-[var(--text-secondary)] mt-1">
-                      ${r.date} ${currentUser.role === 'teacher' ? `· Student: ${studentName}` : ''}
-                    </div>
-                  </div>
-                  ${currentUser.role === 'teacher' ? `<button onclick="deleteDiscipline(${i})" class="text-red-400 hover:text-red-300"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : ''}
-                </div>
-              `;
-            }).join('') : '<p class="text-[var(--text-secondary)]">No discipline records.</p>';
-            return `<div class="space-y-6 animate-fade-in"><h2 class="text-2xl font-bold flex items-center gap-2"><i data-lucide="shield-alert" class="w-6 h-6"></i> Discipline</h2><div class="grid gap-4">${html}</div></div>`;
-        }
+function renderDiscipline() {
+    let records;
+    if (currentUser.role === 'teacher') {
+        records = dataStore.disciplineRecords;
+    } else {
+        records = dataStore.disciplineRecords.filter(r => r.studentId === currentUser.id);
+    }
+
+    // Newest → Oldest
+    records = records.slice().sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    const html = records.length ? records.map((r, i) => {
+        const student = dataStore.users.find(u => u.id === r.studentId);
+        const studentName = student ? student.name : r.studentId;
+        return `
+        <div class="card p-4 flex justify-between">
+          <div>
+            <p class="font-medium">${r.note}</p>
+            <div class="text-xs text-[var(--text-secondary)] mt-1">
+              ${r.date} ${currentUser.role === 'teacher' ? `· Student: ${studentName}` : ''}
+            </div>
+          </div>
+          ${currentUser.role === 'teacher' ? `<button onclick="deleteDiscipline(${i})" class="text-red-400 hover:text-red-300"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : ''}
+        </div>
+      `;
+    }).join('') : '<p class="text-[var(--text-secondary)]">No discipline records.</p>';
+
+    return `<div class="space-y-6 animate-fade-in"><h2 class="text-2xl font-bold flex items-center gap-2"><i data-lucide="shield-alert" class="w-6 h-6"></i> Discipline</h2><div class="grid gap-4">${html}</div></div>`;
+}
 
         // ---------- Delete Handlers ----------
         async function deleteHomework(index) {
