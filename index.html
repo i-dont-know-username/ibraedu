@@ -644,38 +644,49 @@
 
         // ---------- Render Functions ----------
         function renderHomework() {
-            const classFilter = currentUser.role === 'teacher' ? 'all' : getStudentClass();
-            const items = dataStore.homeworks.filter(hw => classFilter === 'all' || hw.class === classFilter);
-            const html = items.length ? items.map((hw, i) => `
-            <div class="card p-4 flex justify-between items-start">
-              <div>
-                <h3 class="font-semibold">${hw.title}</h3>
-                <p class="text-sm text-[var(--text-secondary)]">${hw.description}</p>
-                <span class="text-xs text-[var(--text-secondary)]">Due: ${hw.dueDate || '-'}</span>
-                ${currentUser.role === 'teacher' ? `<span class="text-xs border border-[var(--border)] px-2 py-1 rounded ml-2">${hw.class}</span>` : ''}
-              </div>
-              ${currentUser.role === 'teacher' ? `<button onclick="deleteHomework(${i})" class="text-red-400 hover:text-red-300"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : ''}
-            </div>
-          `).join('') : '<p class="text-[var(--text-secondary)]">No homework.</p>';
-            return `<div class="space-y-6 animate-fade-in"><h2 class="text-2xl font-bold flex items-center gap-2"><i data-lucide="book-open" class="w-6 h-6"></i> Homework</h2><div class="grid gap-4">${html}</div></div>`;
-        }
+    const classFilter = currentUser.role === 'teacher' ? 'all' : getStudentClass();
+    
+    // 1. Map original index, 2. Filter, 3. Reverse to show newest first
+    const items = dataStore.homeworks
+        .map((hw, idx) => ({ ...hw, originalIndex: idx }))
+        .filter(hw => classFilter === 'all' || hw.class === classFilter)
+        .reverse();
+
+    const html = items.length ? items.map((hw) => `
+    <div class="card p-4 flex justify-between items-start">
+      <div>
+        <h3 class="font-semibold">${hw.title}</h3>
+        <p class="text-sm text-[var(--text-secondary)]">${hw.description}</p>
+        <span class="text-xs text-[var(--text-secondary)]">Due: ${hw.dueDate || '-'}</span>
+        ${currentUser.role === 'teacher' ? `<span class="text-xs border border-[var(--border)] px-2 py-1 rounded ml-2">${hw.class}</span>` : ''}
+      </div>
+      ${currentUser.role === 'teacher' ? `<button onclick="deleteHomework(${hw.originalIndex})" class="text-red-400 hover:text-red-300"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : ''}
+    </div>
+  `).join('') : '<p class="text-[var(--text-secondary)]">No homework.</p>';
+  
+  return html; // Or whatever your return wrapper looks like
+}
 
         function renderDailyWork() {
-            const classFilter = currentUser.role === 'teacher' ? 'all' : getStudentClass();
-            const items = dataStore.dailyWorks.filter(dw => classFilter === 'all' || dw.class === classFilter);
-            const html = items.length ? items.map((dw, i) => `
-            <div class="card p-4 flex justify-between">
-              <div>
-                <h3 class="font-semibold">${dw.title}</h3>
-                <p class="text-sm text-[var(--text-secondary)]">${dw.description}</p>
-                <span class="text-xs text-[var(--text-secondary)]">${dw.date || '-'}</span>
-                ${currentUser.role === 'teacher' ? `<span class="text-xs border border-[var(--border)] px-2 py-1 rounded ml-2">${dw.class}</span>` : ''}
-              </div>
-              ${currentUser.role === 'teacher' ? `<button onclick="deleteDailyWork(${i})" class="text-red-400 hover:text-red-300"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : ''}
-            </div>
-          `).join('') : '<p class="text-[var(--text-secondary)]">No daily work.</p>';
-            return `<div class="space-y-6 animate-fade-in"><h2 class="text-2xl font-bold flex items-center gap-2"><i data-lucide="calendar" class="w-6 h-6"></i> Daily Work</h2><div class="grid gap-4">${html}</div></div>`;
-        }
+    const classFilter = currentUser.role === 'teacher' ? 'all' : getStudentClass();
+    
+    const items = dataStore.dailyWorks
+        .map((dw, idx) => ({ ...dw, originalIndex: idx }))
+        .filter(dw => classFilter === 'all' || dw.class === classFilter)
+        .reverse();
+
+    const html = items.length ? items.map((dw) => `
+    <div class="card p-4 flex justify-between items-start">
+      <div>
+        <h3 class="font-semibold">${dw.title}</h3>
+        <p class="text-sm text-[var(--text-secondary)]">${dw.description}</p>
+        ${currentUser.role === 'teacher' ? `<button onclick="deleteDailyWork(${dw.originalIndex})" class="text-red-400 hover:text-red-300"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : ''}
+      </div>
+    </div>
+  `).join('') : '<p class="text-[var(--text-secondary)]">No daily work.</p>';
+  
+  return html;
+}
 
         function renderWeeklyPlan() {
             const classFilter = currentUser.role === 'teacher' ? 'all' : getStudentClass();
@@ -694,29 +705,25 @@
         }
 
         function renderDiscipline() {
-            let records;
-            if (currentUser.role === 'teacher') {
-                records = dataStore.disciplineRecords;
-            } else {
-                records = dataStore.disciplineRecords.filter(r => r.studentId === currentUser.id);
-            }
-            const html = records.length ? records.map((r, i) => {
-                const student = dataStore.users.find(u => u.id === r.studentId);
-                const studentName = student ? student.name : r.studentId;
-                return `
-                <div class="card p-4 flex justify-between">
-                  <div>
-                    <p class="font-medium">${r.note}</p>
-                    <div class="text-xs text-[var(--text-secondary)] mt-1">
-                      ${r.date} ${currentUser.role === 'teacher' ? `· Student: ${studentName}` : ''}
-                    </div>
-                  </div>
-                  ${currentUser.role === 'teacher' ? `<button onclick="deleteDiscipline(${i})" class="text-red-400 hover:text-red-300"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : ''}
-                </div>
-              `;
-            }).join('') : '<p class="text-[var(--text-secondary)]">No discipline records.</p>';
-            return `<div class="space-y-6 animate-fade-in"><h2 class="text-2xl font-bold flex items-center gap-2"><i data-lucide="shield-alert" class="w-6 h-6"></i> Discipline</h2><div class="grid gap-4">${html}</div></div>`;
-        }
+    const classFilter = currentUser.role === 'teacher' ? 'all' : getStudentClass();
+    
+    const items = dataStore.disciplineRecords
+        .map((dr, idx) => ({ ...dr, originalIndex: idx }))
+        .filter(dr => classFilter === 'all' || dr.class === classFilter)
+        .reverse();
+
+    const html = items.length ? items.map((dr) => `
+    <div class="card p-4 flex justify-between items-start">
+      <div>
+        <h3 class="font-semibold">${dr.title || 'Discipline Record'}</h3>
+        <p class="text-sm text-[var(--text-secondary)]">${dr.description}</p>
+        ${currentUser.role === 'teacher' ? `<button onclick="deleteDisciplineRecord(${dr.originalIndex})" class="text-red-400 hover:text-red-300"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : ''}
+      </div>
+    </div>
+  `).join('') : '<p class="text-[var(--text-secondary)]">No discipline records.</p>';
+  
+  return html;
+}
 
         // ---------- Delete Handlers ----------
         async function deleteHomework(index) {
