@@ -1,6 +1,6 @@
-const CACHE_NAME = 'ibraedu-v7'; // Bumped version to evict the old corrupted cache
+const CACHE_NAME = 'ibraedu-v8'; // Bumped version to evict old corrupted logic caches
 
-// Core structural assets to cache on install
+// Core static assets to cache on service worker install
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -39,7 +39,15 @@ self.addEventListener('fetch', event => {
     return; // Let the browser handle live database updates naturally
   }
 
-  // 2. Filter external CDN assets
+  // 2. CRITICAL FIX FOR SPA & VERCEL REDIRECTS:
+  // If this is a main window browser navigation request (e.g. typing the URL, reloading,
+  // or hitting the root domain), step aside completely. This lets Vercel's server-side 
+  // redirects handle routing naturally without hitting the "redirect mode not follow" security crash.
+  if (request.mode === 'navigate') {
+    return; 
+  }
+
+  // 3. Filter and handle external CDN assets
   const isExternalCDN = 
     url.hostname.includes('tailwindcss.com') || 
     url.hostname.includes('unpkg.com') || 
@@ -63,33 +71,22 @@ self.addEventListener('fetch', event => {
         })
     );
   } else {
-    // Strategy for local paths / SPA routing: Cache First, Fallback to Network, Fallback to index.html
+    // Strategy for local sub-assets (Images, CSS, structural JS, Manifest)
     event.respondWith(
       caches.match(request).then(cachedResponse => {
         if (cachedResponse) {
           return cachedResponse;
         }
 
-        return fetch(request)
-          .then(networkResponse => {
-            // Only cache valid standard file responses (like images, scripts, manifest)
-            if (networkResponse && networkResponse.status === 200) {
-              const clone = networkResponse.clone();
-              caches.open(CACHE_NAME).then(cache => cache.put(request, clone));
-            }
-            return networkResponse;
-          })
-          .catch((err) => {
-            // CRITICAL SPA FALLBACK:
-            // If it's a browser navigation request (e.g., typing /classes or /login) 
-            // and the network fails/doesn't find a direct file, serve the cached SPA shell index.html.
-            if (request.mode === 'navigate') {
-              return caches.match('./index.html');
-            }
-            
-            // Otherwise throw the error so the browser knows the asset is genuinely missing
-            throw err;
-          });
+        return fetch(request).then(networkResponse => {
+          if (networkResponse && networkResponse.status === 200) {
+            const clone = networkResponse.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(request, clone));
+          }
+          return networkResponse;
+        }).catch((err) => {
+          throw err;
+        });
       })
     );
   }
