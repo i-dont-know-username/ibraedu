@@ -156,6 +156,8 @@
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndzeHV6eGlhbmpxZGFhZXRhcGhpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM0Mzg0MjYsImV4cCI6MjA5OTAxNDQyNn0.YNWg9o94WvOJcN3WZ03VQGg3fN3wPaljllSSV6Ej-E4';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+        const VAPID_PUBLIC_KEY = 'BPPeYA-ivlAKNi0HRq8qmmU5PhejzMkML73KX_1HpyT1-gTYrM_Czlex55fmhbmyUNZCpKiRalC-NvdXj_6JxPE';
+
         const STORAGE_KEY = 'IbraEdu Database';
         let currentUser = null;
         let dataStore = {
@@ -164,7 +166,8 @@
             homeworks: [],
             dailyWorks: [],
             weeklyPlans: [],
-            disciplineRecords: []
+            disciplineRecords: [],
+            subscriptions: []   // push notification subscriptions
         };
         let previousData = null;
         let recordId = null;
@@ -190,6 +193,68 @@
         window.confirm = (msg) => showModal(msg, true);
 
         function initLucide() { lucide.createIcons(); }
+
+        // ---------- Push Notification Helpers ----------
+        function urlBase64ToUint8Array(base64String) {
+            const padding = '='.repeat((4 - base64String.length % 4) % 4);
+            const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+            const rawData = window.atob(base64);
+            return new Uint8Array([...rawData].map(char => char.charCodeAt(0)));
+        }
+
+        async function subscribeUserToPush() {
+            if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+            try {
+                const permission = await Notification.requestPermission();
+                if (permission !== 'granted') return;
+                const registration = await navigator.serviceWorker.ready;
+                let subscription = await registration.pushManager.getSubscription();
+                if (!subscription) {
+                    subscription = await registration.pushManager.subscribe({
+                        userVisibleOnly: true,
+                        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+                    });
+                }
+                const subObj = {
+                    endpoint: subscription.endpoint,
+                    keys: {
+                        p256dh: btoa(String.fromCharCode(...new Uint8Array(subscription.getKey('p256dh')))),
+                        auth: btoa(String.fromCharCode(...new Uint8Array(subscription.getKey('auth'))))
+                    }
+                };
+                // Remove any old subscription for this user/endpoint
+                dataStore.subscriptions = (dataStore.subscriptions || []).filter(
+                    s => s.userId !== currentUser.id || s.endpoint !== subObj.endpoint
+                );
+                dataStore.subscriptions.push({
+                    userId: currentUser.id,
+                    endpoint: subObj.endpoint,
+                    keys: subObj.keys
+                });
+                await saveLocal();
+                console.log('Push subscribed for', currentUser.name);
+            } catch (err) {
+                console.error('Push subscription failed:', err);
+            }
+        }
+
+        async function sendPushToUsers(userIds, title, body, url) {
+            if (!userIds.length) return;
+            const targetSubs = dataStore.subscriptions.filter(s => userIds.includes(s.userId));
+            if (!targetSubs.length) return;
+            try {
+                await fetch('/api/send-push', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        subscriptions: targetSubs.map(s => ({ endpoint: s.endpoint, keys: s.keys })),
+                        notification: { title, body, url }
+                    })
+                });
+            } catch (err) {
+                console.warn('Failed to send push notifications:', err);
+            }
+        }
 
         // ---------- Supabase Data Handling ----------
         async function fetchDataFromSupabase() {
@@ -241,6 +306,7 @@
                     dataStore.dailyWorks = parsed.dailyWorks || [];
                     dataStore.weeklyPlans = parsed.weeklyPlans || [];
                     dataStore.disciplineRecords = parsed.disciplineRecords || [];
+                    dataStore.subscriptions = parsed.subscriptions || [];
                     console.log('%c✔ Data loaded from localStorage', 'color: #4ade80;');
                 } catch (e) { console.warn('Corrupted localStorage data'); }
             } else { console.log('ℹ No localStorage data yet'); }
@@ -257,6 +323,7 @@
                 dataStore.dailyWorks = newData.dailyWorks || [];
                 dataStore.weeklyPlans = newData.weeklyPlans || [];
                 dataStore.disciplineRecords = newData.disciplineRecords || [];
+                dataStore.subscriptions = newData.subscriptions || [];
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(dataStore));
                 checkAndNotify(newData);
                 previousData = newData;
@@ -299,6 +366,7 @@
                 dataStore.dailyWorks = supabaseData.dailyWorks || [];
                 dataStore.weeklyPlans = supabaseData.weeklyPlans || [];
                 dataStore.disciplineRecords = supabaseData.disciplineRecords || [];
+                dataStore.subscriptions = supabaseData.subscriptions || [];
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(dataStore));
             }
         }
@@ -316,14 +384,12 @@
             '/password': { page: 'change-password', requiresLogin: true, teacherOnly: true }
         };
 
-function handleRoute() {
+        function handleRoute() {
             const path = window.location.pathname;
-            // Root redirection: logged in -> default page, else -> /login
             if (path === '/') {
                 if (currentUser) {
                     const defaultPage = currentUser.role === 'teacher' ? '/classes' : '/homework';
                     history.replaceState(null, '', defaultPage);
-                    // FIX: Stop recursive internal logic loop. Use a clean timeout break to load fresh state paths.
                     setTimeout(handleRoute, 0);
                 } else {
                     history.replaceState(null, '', '/login');
@@ -338,36 +404,30 @@ function handleRoute() {
                 return;
             }
 
-            // if page requires login and user is not logged in -> redirect to /login
             if (route.requiresLogin && !currentUser) {
                 history.replaceState(null, '', '/login');
                 renderLoginScreen();
                 return;
             }
 
-            // teacher‑only pages blocked for students
             if (route.teacherOnly && currentUser && currentUser.role !== 'teacher') {
                 render403();
                 return;
             }
 
-            // Already logged in and tries to access /login -> redirect to default
             if (path === '/login' && currentUser) {
                 const defaultPage = currentUser.role === 'teacher' ? '/classes' : '/homework';
                 history.replaceState(null, '', defaultPage);
-                // FIX: Prevent maximum call stack browser crash loops.
                 setTimeout(handleRoute, 0);
                 return;
             }
 
-            // Otherwise, render the requested page
             document.getElementById('loginScreen').classList.add('hidden');
             document.getElementById('appScreen').classList.remove('hidden');
 
             if (route.page === 'login') {
                 renderLoginScreen();
             } else {
-                // init dashboard only once (sets sidebar listeners, theme, etc.)
                 if (!dashboardInitialized) {
                     initDashboard();
                     dashboardInitialized = true;
@@ -402,7 +462,7 @@ function handleRoute() {
             });
         });
 
-async function attemptLogin() {
+        async function attemptLogin() {
             const id = document.getElementById('loginId').value.trim();
             const password = document.getElementById('loginPassword').value;
             const errorEl = document.getElementById('loginError');
@@ -427,12 +487,10 @@ async function attemptLogin() {
             localStorage.setItem('IbraEdu_LoggedInUserId', user.id);
             requestNotificationPermission();
             startPolling();
-            
-            // FIX: Instead of calling handleRoute() directly while stuck on the /login path, 
-            // use your router's safe navigate feature to send them to their explicit landing page.
+            // Subscribe to push notifications (after permission)
+            subscribeUserToPush();
             const defaultPage = user.role === 'teacher' ? '/classes' : '/homework';
             routerNavigate(defaultPage, true);
-            
             console.log(`%c✔ Logged in as ${user.name}`, 'color: #4ade80;');
         }
 
@@ -441,7 +499,6 @@ async function attemptLogin() {
             document.getElementById('userName').textContent = currentUser.name;
             document.getElementById('userInitial').textContent = currentUser.name.charAt(0).toUpperCase();
             document.getElementById('teacherLinks').classList.toggle('hidden', currentUser.role !== 'teacher');
-            // Sidebar click interception (only added once)
             document.querySelectorAll('#sidebarNav a').forEach(link => {
                 link.addEventListener('click', (e) => {
                     e.preventDefault();
@@ -454,7 +511,7 @@ async function attemptLogin() {
             applyTheme(localStorage.getItem('theme'));
         }
 
-        // ---------- Internal page render (unchanged) ----------
+        // ---------- Internal page render ----------
         function navigateTo(page) {
             document.querySelectorAll('#sidebarNav a').forEach(a => a.classList.remove('active'));
             const activeLink = document.querySelector(`#sidebarNav a[data-page="${page}"]`);
@@ -479,7 +536,7 @@ async function attemptLogin() {
         // ---------- 404 & 403 (full‑screen, no sidebar) ----------
         function render404() {
             document.getElementById('loginScreen').classList.add('hidden');
-            document.getElementById('appScreen').classList.add('hidden');  // hide sidebar & header
+            document.getElementById('appScreen').classList.add('hidden');
             document.body.innerHTML = `
                 <div class="error-page flex flex-col space-y-4">
                     <h1 class="text-6xl font-bold">404</h1>
@@ -502,7 +559,7 @@ async function attemptLogin() {
             document.title = '403 - Forbidden';
         }
 
-        // ---------- Render functions (all kept exactly as before) ----------
+        // ---------- Render functions ----------
         function renderHomework() {
             const classFilter = currentUser.role === 'teacher' ? 'all' : getStudentClass();
             const items = dataStore.homeworks.filter(hw => classFilter === 'all' || hw.class === classFilter);
@@ -611,7 +668,7 @@ async function attemptLogin() {
         async function addStudent(e) { e.preventDefault(); const id=document.getElementById('newId').value.trim(), name=document.getElementById('newName').value.trim(), dob=document.getElementById('newDob').value.trim(), password=document.getElementById('newPassword').value, cls=document.getElementById('newClass').value; if(!id||!name||!dob||!password)return; if(password.length<6){await alert('Password min 6 chars.');return;} if(dataStore.users.find(u=>u.id===id)){await alert('ID exists.');return;} dataStore.users.push({id,name,dob,password,role:'student',class:cls}); await saveLocal(); navigateTo('manage-students'); }
         async function removeStudent(id) { if(!await confirm('Remove?'))return; dataStore.users=dataStore.users.filter(u=>u.id!==id); dataStore.disciplineRecords=dataStore.disciplineRecords.filter(r=>r.studentId!==id); await saveLocal(); navigateTo('manage-students'); }
 
-        // ---------- Manage Content ----------
+        // ---------- Manage Content (with push notifications) ----------
         function renderManageContent() {
             const classOptions = dataStore.classes.map(c=>`<option value="${c}">${c}</option>`).join('');
             const studentOptions = dataStore.users.filter(u=>u.role==='student').map(s=>`<option value="${s.id}">${s.name} (${s.id})</option>`).join('');
@@ -646,28 +703,126 @@ async function attemptLogin() {
             <button onclick="clearContent('disciplineRecords')" class="btn-outline btn"><i data-lucide="trash-2" class="w-4 h-4"></i> Clear Discipline</button>
             </div></div></div>`;
         }
-        async function addHomework(e) { e.preventDefault(); const title=document.getElementById('hwTitle').value.trim(), desc=document.getElementById('hwDesc').value.trim(), due=document.getElementById('hwDue').value.trim(), cls=document.getElementById('hwClass').value; if(!title||!desc||!cls)return; dataStore.homeworks.push({title,description:desc,dueDate:due,class:cls}); await saveLocal(); navigateTo('manage-content'); }
-        async function addDailyWork(e) { e.preventDefault(); const title=document.getElementById('dwTitle').value.trim(), desc=document.getElementById('dwDesc').value.trim(), date=document.getElementById('dwDate').value.trim(), cls=document.getElementById('dwClass').value; if(!title||!desc||!cls)return; dataStore.dailyWorks.push({title,description:desc,date,class:cls}); await saveLocal(); navigateTo('manage-content'); }
-        async function addWeeklyPlan(e) { e.preventDefault(); const week=document.getElementById('wpWeek').value.trim(), plan=document.getElementById('wpPlan').value.trim(), cls=document.getElementById('wpClass').value; if(!week||!plan||!cls)return; dataStore.weeklyPlans.push({week,plan,class:cls}); await saveLocal(); navigateTo('manage-content'); }
-        async function addDiscipline(e) { e.preventDefault(); const studentId=document.getElementById('discStudent').value, note=document.getElementById('discNote').value.trim(), date=document.getElementById('discDate').value.trim(); if(!studentId||!note||!date)return; dataStore.disciplineRecords.push({studentId,note,date}); await saveLocal(); navigateTo('manage-content'); }
-        async function clearContent(key) { if(await confirm(`Clear all ${key}?`)){ dataStore[key]=[]; await saveLocal(); navigateTo('manage-content'); } }
+
+        async function addHomework(e) {
+            e.preventDefault();
+            const title = document.getElementById('hwTitle').value.trim(),
+                  desc = document.getElementById('hwDesc').value.trim(),
+                  due = document.getElementById('hwDue').value.trim(),
+                  cls = document.getElementById('hwClass').value;
+            if (!title || !desc || !cls) return;
+            dataStore.homeworks.push({ title, description: desc, dueDate: due, class: cls });
+            await saveLocal();
+            // Notify students of that class
+            const studentsInClass = dataStore.users.filter(u => u.role === 'student' && u.class === cls).map(u => u.id);
+            sendPushToUsers(studentsInClass, `New homework: ${title}`, desc, '/homework');
+            navigateTo('manage-content');
+        }
+
+        async function addDailyWork(e) {
+            e.preventDefault();
+            const title = document.getElementById('dwTitle').value.trim(),
+                  desc = document.getElementById('dwDesc').value.trim(),
+                  date = document.getElementById('dwDate').value.trim(),
+                  cls = document.getElementById('dwClass').value;
+            if (!title || !desc || !cls) return;
+            dataStore.dailyWorks.push({ title, description: desc, date, class: cls });
+            await saveLocal();
+            const studentsInClass = dataStore.users.filter(u => u.role === 'student' && u.class === cls).map(u => u.id);
+            sendPushToUsers(studentsInClass, `New daily work: ${title}`, desc, '/dailywork');
+            navigateTo('manage-content');
+        }
+
+        async function addWeeklyPlan(e) {
+            e.preventDefault();
+            const week = document.getElementById('wpWeek').value.trim(),
+                  plan = document.getElementById('wpPlan').value.trim(),
+                  cls = document.getElementById('wpClass').value;
+            if (!week || !plan || !cls) return;
+            dataStore.weeklyPlans.push({ week, plan, class: cls });
+            await saveLocal();
+            const studentsInClass = dataStore.users.filter(u => u.role === 'student' && u.class === cls).map(u => u.id);
+            sendPushToUsers(studentsInClass, `New weekly plan: ${week}`, plan, '/weeklyplan');
+            navigateTo('manage-content');
+        }
+
+        async function addDiscipline(e) {
+            e.preventDefault();
+            const studentId = document.getElementById('discStudent').value,
+                  note = document.getElementById('discNote').value.trim(),
+                  date = document.getElementById('discDate').value.trim();
+            if (!studentId || !note || !date) return;
+            dataStore.disciplineRecords.push({ studentId, note, date });
+            await saveLocal();
+            // Notify only that specific student
+            sendPushToUsers([studentId], 'Discipline record', note, '/discipline');
+            navigateTo('manage-content');
+        }
+
+        async function clearContent(key) {
+            if (await confirm(`Clear all ${key}?`)) {
+                dataStore[key] = [];
+                await saveLocal();
+                navigateTo('manage-content');
+            }
+        }
 
         // ---------- Change Password ----------
-        function renderChangePassword() { return `<div class="space-y-6 animate-fade-in max-w-md"><h2 class="text-2xl font-bold flex items-center gap-2"><i data-lucide="key" class="w-6 h-6"></i> Change Password</h2>
+        function renderChangePassword() {
+            return `<div class="space-y-6 animate-fade-in max-w-md"><h2 class="text-2xl font-bold flex items-center gap-2"><i data-lucide="key" class="w-6 h-6"></i> Change Password</h2>
             <div class="card p-4 space-y-3"><input type="password" id="oldPass" placeholder="Current password" class="input-field">
             <input type="password" id="newPass" placeholder="New password (min 6 chars)" class="input-field" minlength="6">
-            <button onclick="changePassword()" class="btn w-full justify-center">Update</button><p id="passMsg" class="text-sm hidden"></p></div></div>`; }
-        async function changePassword() { const old=document.getElementById('oldPass').value, newPass=document.getElementById('newPass').value, msg=document.getElementById('passMsg'); msg.classList.add('hidden'); if(old!==currentUser.password){msg.textContent='Wrong current password.';msg.className='text-sm text-red-400';msg.classList.remove('hidden');return;} if(newPass.length<6){msg.textContent='Min 6 characters.';msg.className='text-sm text-red-400';msg.classList.remove('hidden');return;} const user=dataStore.users.find(u=>u.id===currentUser.id); if(user) user.password=newPass; currentUser.password=newPass; await saveLocal(); msg.textContent='Password updated.';msg.className='text-sm text-green-400';msg.classList.remove('hidden'); }
+            <button onclick="changePassword()" class="btn w-full justify-center">Update</button><p id="passMsg" class="text-sm hidden"></p></div></div>`;
+        }
+        async function changePassword() {
+            const old = document.getElementById('oldPass').value,
+                  newPass = document.getElementById('newPass').value,
+                  msg = document.getElementById('passMsg');
+            msg.classList.add('hidden');
+            if (old !== currentUser.password) {
+                msg.textContent = 'Wrong current password.';
+                msg.className = 'text-sm text-red-400';
+                msg.classList.remove('hidden');
+                return;
+            }
+            if (newPass.length < 6) {
+                msg.textContent = 'Min 6 characters.';
+                msg.className = 'text-sm text-red-400';
+                msg.classList.remove('hidden');
+                return;
+            }
+            const user = dataStore.users.find(u => u.id === currentUser.id);
+            if (user) user.password = newPass;
+            currentUser.password = newPass;
+            await saveLocal();
+            msg.textContent = 'Password updated.';
+            msg.className = 'text-sm text-green-400';
+            msg.classList.remove('hidden');
+        }
 
         // ---------- Theme Toggle ----------
-        function toggleTheme() { const current=document.body.classList.contains('light')?'light':'dark'; const next=current==='dark'?'light':'dark'; applyTheme(next); localStorage.setItem('theme',next); }
-        function applyTheme(theme) { if(theme==='light'){document.body.classList.add('light');document.getElementById('themeIcon').setAttribute('data-lucide','moon');} else {document.body.classList.remove('light');document.getElementById('themeIcon').setAttribute('data-lucide','sun');} initLucide(); }
+        function toggleTheme() {
+            const current = document.body.classList.contains('light') ? 'light' : 'dark';
+            const next = current === 'dark' ? 'light' : 'dark';
+            applyTheme(next);
+            localStorage.setItem('theme', next);
+        }
+        function applyTheme(theme) {
+            if (theme === 'light') {
+                document.body.classList.add('light');
+                document.getElementById('themeIcon').setAttribute('data-lucide', 'moon');
+            } else {
+                document.body.classList.remove('light');
+                document.getElementById('themeIcon').setAttribute('data-lucide', 'sun');
+            }
+            initLucide();
+        }
 
         // ---------- Logout ----------
         function logout() {
             currentUser = null;
             localStorage.removeItem('IbraEdu_LoggedInUserId');
-            dashboardInitialized = false;  // so it can be re‑initialised after next login
+            dashboardInitialized = false;
             history.replaceState(null, '', '/login');
             renderLoginScreen();
             closeSidebar();
@@ -690,11 +845,10 @@ async function attemptLogin() {
             document.getElementById('sidebarOverlay').classList.remove('show');
         }
 
-// ---------- Startup ----------
+        // ---------- Startup ----------
         window.addEventListener('DOMContentLoaded', async () => {
             await initialDataLoad();
             initLucide();
-            // Try auto‑login from saved session
             const savedUserId = localStorage.getItem('IbraEdu_LoggedInUserId');
             if (savedUserId && dataStore.users && dataStore.users.length > 0) {
                 const user = dataStore.users.find(u => u.id === savedUserId);
@@ -703,11 +857,10 @@ async function attemptLogin() {
                     console.log(`%c✔ Auto-logged in as ${user.name}`, 'color: #4ade80;');
                     requestNotificationPermission();
                     startPolling();
+                    // Subscribe to push notifications after auto‑login
+                    subscribeUserToPush();
                 }
             }
-            
-            // FIX: If the user is logged in and loads the root URL directly, 
-            // use a safe microtask timeout to defer the router rendering loop execution thread
             if (window.location.pathname === '/' && currentUser) {
                 const defaultPage = currentUser.role === 'teacher' ? '/classes' : '/homework';
                 history.replaceState(null, '', defaultPage);
