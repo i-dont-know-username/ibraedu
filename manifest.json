@@ -2,11 +2,13 @@
   "name": "IbraEdu - LMS",
   "short_name": "IbraEdu",
   "description": "Learning Management System for teachers and students",
-  "start_url": "./index.html",
+  "start_url": "/login",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#0a0a0a",
   "theme_color": "#0a0a0a",
   "orientation": "any",
+  "categories": ["education", "productivity"],
   "icons": [
     {
       "src": "icon-192.png",
@@ -20,5 +22,20 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
-  ]
+  ],
+  "screenshots": [
+    {
+      "src": "screenshot.png",
+      "sizes": "307x664",
+      "type": "image/png",
+      "label": "IbraEdu Login"
+    },
+    {
+      "src": "screenshot2.png",
+      "sizes": "307x669",
+      "type": "image/png",
+      "label": "IbraEdu Dashboard"
+    }
+  ],
+  "prefer_related_applications": false
 }
