@@ -1,4 +1,6 @@
 {
+  "$schema": "https://schemastore.org",
+  "id": "/login",
   "name": "IbraEdu - LMS",
   "short_name": "IbraEdu",
   "description": "Learning Management System for teachers and students",
