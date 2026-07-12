@@ -1,0 +1,8 @@
+{
+  "name": "ibraedu",
+  "version": "1.0.0",
+  "description": "IbraEdu an advanced LMS for Ibrahim's Scratch students.",
+  "dependencies": {
+    "web-push": "^3.6.7"
+  }
+}
