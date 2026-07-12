@@ -30,12 +30,14 @@
       "src": "screenshot.png",
       "sizes": "307x664",
       "type": "image/png",
+      "form_factor": "narrow",
       "label": "IbraEdu Login"
     },
     {
       "src": "screenshot2.png",
       "sizes": "307x669",
       "type": "image/png",
+      "form_factor": "narrow",
       "label": "IbraEdu Dashboard"
     }
   ],
