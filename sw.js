@@ -5,8 +5,8 @@ const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './manifest.json',
-  '.icons/icon-192.png',
-  '.icons/icon-512.png'
+  'icons/icon-192.png',
+  'icons/icon-512.png'
 ];
 
 // ----- Install & Activate -----
@@ -93,8 +93,8 @@ self.addEventListener('push', event => {
   const payload = event.data ? event.data.json() : { title: 'IbraEdu', body: 'New update' };
   const options = {
     body: payload.body || '',
-    icon: '.icons/icon-192.png',
-    badge: '.icons/icon-192.png',
+    icon: 'icons/icon-192.png',
+    badge: 'icons/icon-192.png',
     data: { url: payload.url || '/' }
   };
   event.waitUntil(self.registration.showNotification(payload.title, options));
