@@ -2,9 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <title>IbraEdu - LMS</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><rect width='24' height='24' rx='7' ry='7' fill='%23171717'/><g transform='translate(4.8 4.8) scale(0.6)' fill='none' stroke='%23f5f5f5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M22 10v6M2 10l10-5 10 5-10 5z'/><path d='M6 12v5c0 2 4 3 6 3s6-1 6-3v-5'/></g></svg>" />
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><rect width='24' height='24' rx='7' ry='7' fill='%23171717'/><g transform='translate(4.8 4.8) scale(0.6)' fill='none' stroke='%23f5f5f5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M22 10v6M2 10l10-5 10 5-10 5z'/><path d='M6 12v5c0 2 4 3 6 3s6-1 6-3v-5'/></g></svg>" />
     <link rel="manifest" href="./manifest.json" crossorigin="use-credentials">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -13,7 +14,7 @@
         * { font-family: 'Inter', sans-serif; transition: background-color 0.3s, color 0.3s, border-color 0.3s, box-shadow 0.3s; }
         :root { --bg: #0a0a0a; --surface: #171717; --surface-hover: #262626; --border: #2e2e2e; --text: #f5f5f5; --text-secondary: #a3a3a3; --shadow: 0 4px 6px -1px rgba(0,0,0,0.5); }
         .light { --bg: #ffffff; --surface: #f9fafb; --surface-hover: #f3f4f6; --border: #e5e7eb; --text: #0a0a0a; --text-secondary: #525252; --shadow: 0 1px 3px rgba(0,0,0,0.05); }
-        body { background-color: var(--bg); color: var(--text); }
+        body { background-color: var(--bg); color: var(--text); padding-bottom: env(safe-area-inset-bottom, 20px); }
         .card { background-color: var(--surface); border: 1px solid var(--border); border-radius: 0.75rem; box-shadow: var(--shadow); }
         .btn { background-color: var(--text); color: var(--bg); border-radius: 0.5rem; padding: 0.5rem 1rem; font-weight: 500; transition: opacity 0.2s; display: inline-flex; align-items: center; gap: 0.5rem; }
         .btn:hover { opacity: 0.8; }
@@ -32,8 +33,8 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 100; display: flex; align-items: center; justify-content: center; }
         .modal-content { background-color: var(--surface); border: 1px solid var(--border); border-radius: 0.75rem; padding: 1.5rem; max-width: 90vw; width: 400px; }
-        /* full‑page error pages (no sidebar / header) */
         .error-page { display: flex; align-items: center; justify-content: center; min-height: 100vh; text-align: center; background-color: var(--bg); color: var(--text); }
+        .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 16px); }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
@@ -79,7 +80,7 @@
     <!-- Main App Screen (sidebar + content) -->
     <div id="appScreen" class="hidden flex min-h-screen">
         <div id="sidebarOverlay" class="overlay" onclick="closeSidebar()"></div>
-        <aside id="sidebar" class="sidebar w-64 flex-shrink-0 p-4 flex flex-col">
+        <aside id="sidebar" class="sidebar w-64 flex-shrink-0 p-4 flex flex-col safe-bottom">
             <div class="flex items-center justify-between mb-6">
                 <div class="flex items-center gap-2">
                     <i data-lucide="graduation-cap" class="w-6 h-6"></i>
@@ -102,6 +103,9 @@
                 <a href="/discipline" data-page="discipline" class="sidebar-link">
                     <i data-lucide="shield-alert" class="w-5 h-5"></i> Discipline
                 </a>
+                <a href="/examresults" data-page="exam-results" class="sidebar-link">
+                    <i data-lucide="bar-chart-2" class="w-5 h-5"></i> Exam Results
+                </a>
                 <div id="teacherLinks" class="hidden mt-2 pt-2 border-t border-[var(--border)]">
                     <a href="/classes" data-page="manage-classes" class="sidebar-link">
                         <i data-lucide="school" class="w-5 h-5"></i> Classes
@@ -117,7 +121,7 @@
                     </a>
                 </div>
             </nav>
-            <div class="mt-auto flex items-center justify-between pt-4 border-t border-[var(--border)]">
+            <div class="mt-auto flex items-center justify-between pt-4 border-t border-[var(--border)] safe-bottom">
                 <div class="flex items-center gap-2">
                     <div class="w-8 h-8 rounded-full bg-[var(--text)] flex items-center justify-center text-[var(--bg)] text-sm font-bold" id="userInitial">U</div>
                     <span id="userName" class="text-sm font-medium"></span>
@@ -140,7 +144,7 @@
                 </button>
                 <span class="font-bold text-lg hidden md:inline">IbraEdu</span>
             </div>
-            <main class="flex-1 p-6 overflow-y-auto" id="mainContent"></main>
+            <main class="flex-1 p-6 overflow-y-auto safe-bottom" id="mainContent"></main>
         </div>
     </div>
 
@@ -167,12 +171,13 @@
             dailyWorks: [],
             weeklyPlans: [],
             disciplineRecords: [],
-            subscriptions: []   // push notification subscriptions
+            examResults: [],
+            subscriptions: []
         };
         let previousData = null;
         let recordId = null;
         let isSaving = false;
-        let dashboardInitialized = false;  // prevent duplicate sidebar listeners
+        let dashboardInitialized = false;
 
         // ---------- Modal / Alert / Confirm ----------
         function showModal(message, isConfirm = false) {
@@ -222,7 +227,6 @@
                         auth: btoa(String.fromCharCode(...new Uint8Array(subscription.getKey('auth'))))
                     }
                 };
-                // Remove any old subscription for this user/endpoint
                 dataStore.subscriptions = (dataStore.subscriptions || []).filter(
                     s => s.userId !== currentUser.id || s.endpoint !== subObj.endpoint
                 );
@@ -306,6 +310,7 @@
                     dataStore.dailyWorks = parsed.dailyWorks || [];
                     dataStore.weeklyPlans = parsed.weeklyPlans || [];
                     dataStore.disciplineRecords = parsed.disciplineRecords || [];
+                    dataStore.examResults = parsed.examResults || [];
                     dataStore.subscriptions = parsed.subscriptions || [];
                     console.log('%c✔ Data loaded from localStorage', 'color: #4ade80;');
                 } catch (e) { console.warn('Corrupted localStorage data'); }
@@ -323,6 +328,7 @@
                 dataStore.dailyWorks = newData.dailyWorks || [];
                 dataStore.weeklyPlans = newData.weeklyPlans || [];
                 dataStore.disciplineRecords = newData.disciplineRecords || [];
+                dataStore.examResults = newData.examResults || [];
                 dataStore.subscriptions = newData.subscriptions || [];
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(dataStore));
                 checkAndNotify(newData);
@@ -339,6 +345,7 @@
             if (newData.dailyWorks?.length > previousData.dailyWorks?.length) message += 'New daily work, ';
             if (newData.weeklyPlans?.length > previousData.weeklyPlans?.length) message += 'New weekly plan, ';
             if (newData.disciplineRecords?.length > previousData.disciplineRecords?.length) message += 'New discipline record, ';
+            if (newData.examResults?.length > previousData.examResults?.length) message += 'New exam result, ';
             if (message) { message = message.slice(0, -2); new Notification('IbraEdu Update', { body: message }); }
         }
 
@@ -366,6 +373,7 @@
                 dataStore.dailyWorks = supabaseData.dailyWorks || [];
                 dataStore.weeklyPlans = supabaseData.weeklyPlans || [];
                 dataStore.disciplineRecords = supabaseData.disciplineRecords || [];
+                dataStore.examResults = supabaseData.examResults || [];
                 dataStore.subscriptions = supabaseData.subscriptions || [];
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(dataStore));
             }
@@ -378,6 +386,7 @@
             '/dailywork': { page: 'daily-work', requiresLogin: true },
             '/weeklyplan': { page: 'weekly-plan', requiresLogin: true },
             '/discipline': { page: 'discipline', requiresLogin: true },
+            '/examresults': { page: 'exam-results', requiresLogin: true },
             '/classes': { page: 'manage-classes', requiresLogin: true, teacherOnly: true },
             '/students': { page: 'manage-students', requiresLogin: true, teacherOnly: true },
             '/content': { page: 'manage-content', requiresLogin: true, teacherOnly: true },
@@ -487,7 +496,6 @@
             localStorage.setItem('IbraEdu_LoggedInUserId', user.id);
             requestNotificationPermission();
             startPolling();
-            // Subscribe to push notifications (after permission)
             subscribeUserToPush();
             const defaultPage = user.role === 'teacher' ? '/classes' : '/homework';
             routerNavigate(defaultPage, true);
@@ -522,6 +530,7 @@
                 case 'daily-work': main.innerHTML = renderDailyWork(); break;
                 case 'weekly-plan': main.innerHTML = renderWeeklyPlan(); break;
                 case 'discipline': main.innerHTML = renderDiscipline(); break;
+                case 'exam-results': main.innerHTML = renderExamResults(); break;
                 case 'manage-classes': main.innerHTML = renderManageClasses(); break;
                 case 'manage-students': main.innerHTML = renderManageStudents(); break;
                 case 'manage-content': main.innerHTML = renderManageContent(); break;
@@ -533,7 +542,7 @@
 
         function getStudentClass() { return currentUser?.class || ''; }
 
-        // ---------- 404 & 403 (full‑screen, no sidebar) ----------
+        // ---------- 404 & 403 ----------
         function render404() {
             document.getElementById('loginScreen').classList.add('hidden');
             document.getElementById('appScreen').classList.add('hidden');
@@ -635,6 +644,101 @@
             return `<div class="space-y-6 animate-fade-in"><h2 class="text-2xl font-bold flex items-center gap-2"><i data-lucide="shield-alert" class="w-6 h-6"></i> Discipline</h2><div class="grid gap-4">${html}</div></div>`;
         }
 
+        // ---------- Exam Results Render ----------
+        function renderExamResults() {
+            if (currentUser.role === 'student') {
+                return `<div class="space-y-6 animate-fade-in"><h2 class="text-2xl font-bold flex items-center gap-2"><i data-lucide="bar-chart-2" class="w-6 h-6"></i> Exam Results</h2>${renderExamResultsForStudent(currentUser.id)}</div>`;
+            } else {
+                const students = dataStore.users.filter(u => u.role === 'student');
+                const options = students.map(s => `<option value="${s.id}">${s.name} (${s.id})</option>`).join('');
+                return `
+                <div class="space-y-6 animate-fade-in">
+                    <h2 class="text-2xl font-bold flex items-center gap-2"><i data-lucide="bar-chart-2" class="w-6 h-6"></i> Exam Results</h2>
+                    <div class="card p-4 flex gap-2 items-end">
+                        <select id="examStudentSelect" class="input-field max-w-xs">
+                            <option value="">-- Select student --</option>
+                            ${options}
+                        </select>
+                        <button onclick="viewStudentResults()" class="btn">View</button>
+                    </div>
+                    <div id="examResultsDetail" class="space-y-4"></div>
+                </div>`;
+            }
+        }
+
+        function renderExamResultsForStudent(studentId) {
+            const result1 = dataStore.examResults.find(r => r.studentId === studentId && r.term === 'Term 1') || {};
+            const result2 = dataStore.examResults.find(r => r.studentId === studentId && r.term === 'Term 2') || {};
+
+            const term1 = {
+                assessmentWritten: result1.assessmentWritten || 0,
+                assessmentPractical: result1.assessmentPractical || 0,
+                examWritten: result1.examWritten || 0,
+                examPractical: result1.examPractical || 0,
+                others: result1.others || 0
+            };
+            const term2 = {
+                assessmentWritten: result2.assessmentWritten || 0,
+                assessmentPractical: result2.assessmentPractical || 0,
+                examWritten: result2.examWritten || 0,
+                examPractical: result2.examPractical || 0,
+                others: result2.others || 0
+            };
+
+            const term1Total = term1.assessmentWritten + term1.assessmentPractical + term1.examWritten + term1.examPractical + term1.others;
+            const term2Total = term2.assessmentWritten + term2.assessmentPractical + term2.examWritten + term2.examPractical + term2.others;
+            const grandTotal = term1Total + term2Total;
+
+            const percent = (val, max) => max > 0 ? ((val / max) * 100).toFixed(1) : '0.0';
+
+            const renderTerm = (termName, scores, total) => `
+                <div class="card p-4">
+                    <h3 class="text-lg font-semibold mb-2">${termName} (/500)</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm">
+                            <thead><tr class="border-b border-[var(--border)]"><th>Component</th><th class="text-right">Marks</th><th class="text-right">Percentage</th></tr></thead>
+                            <tbody>
+                                <tr class="border-b border-[var(--border)]"><td>Assessment (Written)</td><td class="text-right">${scores.assessmentWritten} / 100</td><td class="text-right">${percent(scores.assessmentWritten, 100)}%</td></tr>
+                                <tr class="border-b border-[var(--border)]"><td>Assessment (Practical)</td><td class="text-right">${scores.assessmentPractical} / 100</td><td class="text-right">${percent(scores.assessmentPractical, 100)}%</td></tr>
+                                <tr class="border-b border-[var(--border)]"><td>Exam (Written)</td><td class="text-right">${scores.examWritten} / 100</td><td class="text-right">${percent(scores.examWritten, 100)}%</td></tr>
+                                <tr class="border-b border-[var(--border)]"><td>Exam (Practical)</td><td class="text-right">${scores.examPractical} / 100</td><td class="text-right">${percent(scores.examPractical, 100)}%</td></tr>
+                                <tr class="border-b border-[var(--border)]"><td>Others (Homework, Behavior, Attendance, Participation combined)</td><td class="text-right">${scores.others} / 100</td><td class="text-right">${percent(scores.others, 100)}%</td></tr>
+                                <tr class="font-semibold border-t-2 border-[var(--border)]"><td>${termName} Total</td><td class="text-right">${total} / 500</td><td class="text-right">${percent(total, 500)}%</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+
+            let html = renderTerm('Term 1', term1, term1Total);
+            html += renderTerm('Term 2', term2, term2Total);
+
+            html += `
+                <div class="card p-4 bg-[var(--surface-hover)]">
+                    <h3 class="text-lg font-bold">Grand Total</h3>
+                    <div class="mt-2 grid grid-cols-3 gap-2 text-sm">
+                        <div class="font-medium">Term 1:</div><div>${term1Total} / 500</div><div>${percent(term1Total, 500)}%</div>
+                        <div class="font-medium">Term 2:</div><div>${term2Total} / 500</div><div>${percent(term2Total, 500)}%</div>
+                        <div class="font-bold col-span-3 mt-1">Overall: ${grandTotal} / 1000 (${percent(grandTotal, 1000)}%)</div>
+                    </div>
+                </div>
+            `;
+
+            return html;
+        }
+
+        function viewStudentResults() {
+            const select = document.getElementById('examStudentSelect');
+            const studentId = select.value;
+            const container = document.getElementById('examResultsDetail');
+            if (!studentId) {
+                container.innerHTML = '<p class="text-[var(--text-secondary)]">Please select a student.</p>';
+                return;
+            }
+            container.innerHTML = renderExamResultsForStudent(studentId);
+            initLucide();
+        }
+
         // ---------- Delete Handlers ----------
         async function deleteHomework(index) { if (await confirm('Delete?')) { dataStore.homeworks.splice(index,1); await saveLocal(); navigateTo('homework'); } }
         async function deleteDailyWork(index) { if (await confirm('Delete?')) { dataStore.dailyWorks.splice(index,1); await saveLocal(); navigateTo('daily-work'); } }
@@ -666,7 +770,7 @@
             <button type="submit" class="btn">Add Student</button></form></div></div>`;
         }
         async function addStudent(e) { e.preventDefault(); const id=document.getElementById('newId').value.trim(), name=document.getElementById('newName').value.trim(), dob=document.getElementById('newDob').value.trim(), password=document.getElementById('newPassword').value, cls=document.getElementById('newClass').value; if(!id||!name||!dob||!password)return; if(password.length<6){await alert('Password min 6 chars.');return;} if(dataStore.users.find(u=>u.id===id)){await alert('ID exists.');return;} dataStore.users.push({id,name,dob,password,role:'student',class:cls}); await saveLocal(); navigateTo('manage-students'); }
-        async function removeStudent(id) { if(!await confirm('Remove?'))return; dataStore.users=dataStore.users.filter(u=>u.id!==id); dataStore.disciplineRecords=dataStore.disciplineRecords.filter(r=>r.studentId!==id); await saveLocal(); navigateTo('manage-students'); }
+        async function removeStudent(id) { if(!await confirm('Remove?'))return; dataStore.users=dataStore.users.filter(u=>u.id!==id); dataStore.disciplineRecords=dataStore.disciplineRecords.filter(r=>r.studentId!==id); dataStore.examResults=dataStore.examResults.filter(r=>r.studentId!==id); await saveLocal(); navigateTo('manage-students'); }
 
         // ---------- Manage Content (with push notifications) ----------
         function renderManageContent() {
@@ -695,12 +799,37 @@
             <input type="text" id="discNote" placeholder="Note" class="input-field" required>
             <input type="text" id="discDate" placeholder="Date" class="input-field" required>
             <button type="submit" class="btn">Add Record</button></form></div>
+            <div class="card p-4"><h3 class="font-semibold mb-2">Add / Update Exam Result</h3><form onsubmit="addOrUpdateExamResult(event)" class="space-y-3">
+            <select id="examStudent" class="input-field" required><option value="">Select student</option>${studentOptions}</select>
+            <select id="examTerm" class="input-field" required><option value="">Select term</option><option value="Term 1">Term 1</option><option value="Term 2">Term 2</option></select>
+            <div class="grid grid-cols-2 gap-2">
+                <label class="text-xs">Assessment (Written) /100</label>
+                <input type="number" id="examAssessWritten" class="input-field" placeholder="e.g. 85" min="0" max="100" step="any" required>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+                <label class="text-xs">Assessment (Practical) /100</label>
+                <input type="number" id="examAssessPractical" class="input-field" placeholder="e.g. 90" min="0" max="100" step="any" required>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+                <label class="text-xs">Exam (Written) /100</label>
+                <input type="number" id="examExamWritten" class="input-field" placeholder="e.g. 78" min="0" max="100" step="any" required>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+                <label class="text-xs">Exam (Practical) /100</label>
+                <input type="number" id="examExamPractical" class="input-field" placeholder="e.g. 92" min="0" max="100" step="any" required>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+                <label class="text-xs">Others (Combined) /100</label>
+                <input type="number" id="examOthers" class="input-field" placeholder="e.g. 80" min="0" max="100" step="any" required>
+            </div>
+            <button type="submit" class="btn">Save Exam Result</button></form></div>
             <div class="card p-4"><h3 class="font-semibold mb-2">Clear All Content</h3>
             <div class="flex flex-wrap gap-2">
             <button onclick="clearContent('homeworks')" class="btn-outline btn"><i data-lucide="trash-2" class="w-4 h-4"></i> Clear Homework</button>
             <button onclick="clearContent('dailyWorks')" class="btn-outline btn"><i data-lucide="trash-2" class="w-4 h-4"></i> Clear Daily Work</button>
             <button onclick="clearContent('weeklyPlans')" class="btn-outline btn"><i data-lucide="trash-2" class="w-4 h-4"></i> Clear Weekly Plans</button>
             <button onclick="clearContent('disciplineRecords')" class="btn-outline btn"><i data-lucide="trash-2" class="w-4 h-4"></i> Clear Discipline</button>
+            <button onclick="clearContent('examResults')" class="btn-outline btn"><i data-lucide="trash-2" class="w-4 h-4"></i> Clear Exam Results</button>
             </div></div></div>`;
         }
 
@@ -713,7 +842,6 @@
             if (!title || !desc || !cls) return;
             dataStore.homeworks.push({ title, description: desc, dueDate: due, class: cls });
             await saveLocal();
-            // Notify students of that class
             const studentsInClass = dataStore.users.filter(u => u.role === 'student' && u.class === cls).map(u => u.id);
             sendPushToUsers(studentsInClass, `New homework: ${title}`, desc, '/homework');
             navigateTo('manage-content');
@@ -754,8 +882,34 @@
             if (!studentId || !note || !date) return;
             dataStore.disciplineRecords.push({ studentId, note, date });
             await saveLocal();
-            // Notify only that specific student
             sendPushToUsers([studentId], 'Discipline record', note, '/discipline');
+            navigateTo('manage-content');
+        }
+
+        async function addOrUpdateExamResult(e) {
+            e.preventDefault();
+            const studentId = document.getElementById('examStudent').value;
+            const term = document.getElementById('examTerm').value;
+            const assessmentWritten = parseFloat(document.getElementById('examAssessWritten').value) || 0;
+            const assessmentPractical = parseFloat(document.getElementById('examAssessPractical').value) || 0;
+            const examWritten = parseFloat(document.getElementById('examExamWritten').value) || 0;
+            const examPractical = parseFloat(document.getElementById('examExamPractical').value) || 0;
+            const others = parseFloat(document.getElementById('examOthers').value) || 0;
+
+            if (!studentId || !term) return;
+
+            dataStore.examResults = dataStore.examResults.filter(r => !(r.studentId === studentId && r.term === term));
+            dataStore.examResults.push({
+                studentId,
+                term,
+                assessmentWritten,
+                assessmentPractical,
+                examWritten,
+                examPractical,
+                others
+            });
+            await saveLocal();
+            sendPushToUsers([studentId], 'Exam result updated', `${term} scores saved`, '/examresults');
             navigateTo('manage-content');
         }
 
@@ -857,7 +1011,6 @@
                     console.log(`%c✔ Auto-logged in as ${user.name}`, 'color: #4ade80;');
                     requestNotificationPermission();
                     startPolling();
-                    // Subscribe to push notifications after auto‑login
                     subscribeUserToPush();
                 }
             }
