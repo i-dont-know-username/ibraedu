@@ -28,28 +28,28 @@
   "screenshots": [
     {
       "src": "screenshots/screenshot.png",
-      "sizes": "307x664",
+      "sizes": "720x1280",
       "type": "image/png",
       "form_factor": "narrow",
       "label": "IbraEdu Login"
     },
     {
       "src": "screenshots/screenshot2.png",
-      "sizes": "307x669",
+      "sizes": "720x1280",
       "type": "image/png",
       "form_factor": "narrow",
       "label": "IbraEdu Dashboard"
     },
     {
       "src": "screenshots/screenshot3.png",
-      "sizes": "1920x1080",
+      "sizes": "1280x720",
       "type": "image/png",
       "form_factor": "wide",
       "label": "IbraEdu Dashboard"
     },
     {
       "src": "screenshots/screenshot4.png",
-      "sizes": "1920x1080",
+      "sizes": "1280x720",
       "type": "image/png",
       "form_factor": "wide",
       "label": "IbraEdu Login"
