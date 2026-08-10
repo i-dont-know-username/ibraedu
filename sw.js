@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ibraedu-v10'; // bumped version
+const CACHE_NAME = 'ibraedu-v11'; // bumped version
 
 // Core static assets to cache on install
 const ASSETS_TO_CACHE = [
